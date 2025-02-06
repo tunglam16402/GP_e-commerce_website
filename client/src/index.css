@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+/* css cho 2 button của slider */
+.custom_slider button.slick-next {
+    right: 80px;
+}
+.custom_slider button.slick-prev {
+    left: 20px;
+    z-index: 1000;
+}
+
+.custom_slider button.slick-next::before {
+    color: red;
+    content: '\276F';
+    background-color: rgb(241, 237, 237);
+    height: 80px;
+    width: 80px;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.custom_slider button.slick-prev::before {
+    color: red;
+    content: '\276E';
+    background-color: rgb(241, 237, 237);
+    height: 80px;
+    width: 80px;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* css cho slider của detail product */
+.image_slider button.slick-next {
+    right: 14px;
+    top: 55px;
+}
+.image_slider button.slick-prev {
+    left: 0px;
+    top: 55px;
+    z-index: 49;
+}
+
+.image_slider button.slick-next::before {
+    color: red;
+    content: '\276F';
+    background-color: rgb(241, 237, 237);
+    height: 40px;
+    width: 40px;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.image_slider button.slick-prev::before {
+    color: red;
+    content: '\276E';
+    background-color: rgb(241, 237, 237);
+    height: 40px;
+    width: 40px;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* css for select quantity detail product */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+
+/* css of mansory responsive for product list
+.my-masonry-grid {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    width: auto;
+}
+.my-masonry-grid_column {
+    padding-left: 8px;
+    background-clip: padding-box;
+}
+*/
+.my-masonry-grid_column > div {
+    margin-bottom: 30px;
+}
+
+/* css for markdown code */
+code {
+    white-space: initial;
+}
+
+.group:hover img {
+    transform: perspective(1000px) rotateX(15deg) rotateY(15deg) scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
