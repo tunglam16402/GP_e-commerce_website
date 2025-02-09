@@ -9,7 +9,7 @@
 }
 .custom_slider button.slick-prev {
     left: 20px;
-    z-index: 1000;
+    z-index: 39;
 }
 
 .custom_slider button.slick-next::before {

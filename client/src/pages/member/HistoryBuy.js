@@ -8,11 +8,14 @@ import { useForm } from 'react-hook-form';
 import { createSearchParams, useSearchParams } from 'react-router-dom';
 import { statusOrders } from 'utils/constant';
 import clsx from 'clsx';
+import { DetailOrder } from 'pages/admin';
 
 const HistoryBuy = ({ dispatch, navigate, location }) => {
     const [orders, setOrders] = useState(null);
     const [counts, setCounts] = useState(0);
     const [params] = useSearchParams();
+    const [seeDetail, setSeeDetail] = useState(null);
+
     const {
         register,
         formState: { errors },
@@ -156,6 +159,15 @@ const HistoryBuy = ({ dispatch, navigate, location }) => {
         <div className="flex">
             <div className="ml-[100px] w-full bg-gray-50 min-h-screen px-6">
                 <div className="relative w-full">
+                    {seeDetail && (
+                        <div className="inset-0 absolute bg-gray-100 min-h-screen">
+                            <DetailOrder
+                                seeDetail={seeDetail}
+                                setSeeDetail={setSeeDetail}
+                                // updateOrderStatus={updateOrderStatus}
+                            />
+                        </div>
+                    )}
                     <header className="text-3xl font-semibold py-6 text-main border-b-4 border-main shadow-md">
                         History Buy
                     </header>
@@ -191,6 +203,7 @@ const HistoryBuy = ({ dispatch, navigate, location }) => {
                                     <th className="px-6 py-4">Total</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Created at</th>
+                                    <th className="px-6 py-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -238,6 +251,14 @@ const HistoryBuy = ({ dispatch, navigate, location }) => {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {moment(element.createdAt)?.format('DD/MM/YYYY')}
+                                        </td>
+                                        <td className="px-6 py-4 text-center ">
+                                            <button
+                                                onClick={() => setSeeDetail(element)}
+                                                className="bg-main text-white py-1 shadow-md transition-colors duration-300 hover:bg-white hover:text-main focus:outline-none focus:ring-2 focus:ring-main focus:ring-opacity-50"
+                                            >
+                                                See details
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

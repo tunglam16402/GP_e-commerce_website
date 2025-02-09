@@ -17,6 +17,7 @@ export { default as CustomSlider } from './common/CustomSlider';
 export { default as Footer } from './footer/Footer';
 export { default as InputField } from './inputs/InputField';
 export { default as Button } from './buttons/Button';
+export { default as GoogleLoginButton } from './buttons/GoogleLoginButton';
 export { default as Breadcrumbs } from './common/Breadcrumbs';
 export { default as ImageMagnifier } from './common/ImageMagnify';
 export { default as SelectQuantity } from './common/SelectQuantity';

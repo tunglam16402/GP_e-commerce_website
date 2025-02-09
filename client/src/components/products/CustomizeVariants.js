@@ -31,6 +31,7 @@ const CustomizeVariants = ({ customizeVariant, setCustomizeVariant, render }) =>
             title: customizeVariant?.title,
             color: customizeVariant?.color,
             price: customizeVariant?.price,
+            discount: customizeVariant?.discount,
         });
     }, [customizeVariant]);
 
@@ -84,31 +85,68 @@ const CustomizeVariants = ({ customizeVariant, setCustomizeVariant, render }) =>
     //         console.log(response);
     //     }
     // };
+    // const handleAddVariant = async (data) => {
+    //     if (data.color === customizeVariant.color) {
+    //         Swal.fire('Oops', 'Color not changed', 'info');
+    //     } else {
+    //         const formData = new FormData();
+    //         for (let i of Object.entries(data)) {
+    //             formData.append(i[0], i[1]);
+    //         }
+    //         if (data.thumb) {
+    //             formData.append('thumb', data.thumb[0]);
+    //         }
+    //         if (data.images) {
+    //             for (let image of data.images) {
+    //                 formData.append('images', image);
+    //             }
+    //         }
+    //         dispatch(showModal({ isShowModal: true, modalChildren: <Loading></Loading> }));
+    //         const response = await apiAddVariant(customizeVariant._id, formData);
+    //         dispatch(showModal({ isShowModal: false, modalChildren: null }));
+    //         if (response.success) {
+    //             toast.success(response.message);
+    //             reset();
+    //             render();
+    //             setPreview({ thumb: '', images: [] });
+    //         } else toast.error(response.message);
+    //     }
+    // };
     const handleAddVariant = async (data) => {
+        data.price = parseFloat(data.price); // Chuyển về số
+        data.discount = parseFloat(data.discount) || 0; // Nếu không có discount thì mặc định là 0
+
+        if (data.discount < 0 || data.discount > 100) {
+            toast.warning('Discount must be between 0 and 100');
+            return;
+        }
+
         if (data.color === customizeVariant.color) {
             Swal.fire('Oops', 'Color not changed', 'info');
+            return;
+        }
+
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+
+        if (data.thumb) formData.append('thumb', data.thumb[0]);
+        if (data.images) {
+            for (let image of data.images) {
+                formData.append('images', image);
+            }
+        }
+
+        dispatch(showModal({ isShowModal: true, modalChildren: <Loading /> }));
+        const response = await apiAddVariant(customizeVariant._id, formData);
+        dispatch(showModal({ isShowModal: false }));
+
+        if (response.success) {
+            toast.success(response.message);
+            reset();
+            render();
+            setPreview({ thumb: '', images: [] });
         } else {
-            const formData = new FormData();
-            for (let i of Object.entries(data)) {
-                formData.append(i[0], i[1]);
-            }
-            if (data.thumb) {
-                formData.append('thumb', data.thumb[0]);
-            }
-            if (data.images) {
-                for (let image of data.images) {
-                    formData.append('images', image);
-                }
-            }
-            dispatch(showModal({ isShowModal: true, modalChildren: <Loading></Loading> }));
-            const response = await apiAddVariant(customizeVariant._id, formData);
-            dispatch(showModal({ isShowModal: false, modalChildren: null }));
-            if (response.success) {
-                toast.success(response.message);
-                reset();
-                render();
-                setPreview({ thumb: '', images: [] });
-            } else toast.error(response.message);
+            toast.error(response.message);
         }
     };
 
@@ -152,10 +190,22 @@ const CustomizeVariants = ({ customizeVariant, setCustomizeVariant, render }) =>
                     </div>
                     <div className="w-full my-6 flex gap-4">
                         <InputForm
-                            label="Price"
+                            label="Price (VND):"
                             register={register}
                             errors={errors}
                             id="price"
+                            validate={{
+                                required: 'Need fill this fields',
+                            }}
+                            style="flex-auto"
+                            placeholder="Price of new variant"
+                            type="number"
+                        ></InputForm>
+                        <InputForm
+                            label="Discount (%):"
+                            register={register}
+                            errors={errors}
+                            id="discount"
                             validate={{
                                 required: 'Need fill this fields',
                             }}

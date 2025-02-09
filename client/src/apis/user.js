@@ -12,8 +12,9 @@ export const apiFinalRegister = (token) =>
         url: '/user/finalRegister/' + token,
         method: 'put',
     });
-
 export const apiLogin = (data) => axios({ url: '/user/login', method: 'post', data: data });
+
+export const apiGoogleLogin = (data) => axios({ url: '/user/google-login', method: 'post', data: data });
 
 export const apiForgotPassword = (data) => axios({ url: '/user/forgotpassword', method: 'post', data: data });
 

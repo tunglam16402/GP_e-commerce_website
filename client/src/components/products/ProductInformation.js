@@ -56,7 +56,7 @@ const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderR
 
     return (
         <div>
-            <div className="flex uppercase gap-1 items-center relative bottom-[-1px]">
+            {/* <div className="flex uppercase gap-1 items-center relative bottom-[-1px]">
                 {productInFoTabs.map((element) => (
                     <span
                         className={`py-2 px-6 cursor-pointer ${
@@ -72,14 +72,14 @@ const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderR
             <div className="w-full border p-4">
                 {productInFoTabs.some((element) => element.id === activedTab) &&
                     productInFoTabs.find((element) => element.id === activedTab)?.content}
-            </div>
-            <div className="w-main m-auto mt-8">
+            </div> */}
+            <div className="w-main m-auto mt-8 bg-white border px-4">
                 <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
                     Customer reviews
                 </h3>
                 {
-                    <>
-                        <div className="flex mt-8">
+                    <div>
+                        <div className="flex bg-white mt-8">
                             <div className="flex-4 flex flex-col justify-center items-center border">
                                 <span className="font-semibold text-3xl mb-2">{`${totalRatings}/5`}</span>
                                 <span className="flex items-center gap-1 mb-2">
@@ -107,19 +107,23 @@ const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderR
                             <Button handleOnclick={handleRateNow}>Rate now!</Button>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className='text-[20px] font-semibold py-2' >Comments:</span>
-                            {ratings?.map((element) => (
-                                <Comments
-                                    key={element._id}
-                                    image={element.postedBy?.avatar}
-                                    name={`${element.postedBy?.lastname} ${element.postedBy?.firstname}`}
-                                    star={element.star}
-                                    updatedAt={element.updatedAt}
-                                    comment={element.comment}
-                                ></Comments>
-                            ))}
+                            <span className="text-[20px] font-semibold py-2">Product Review:</span>
+                            {ratings?.length > 0 ? (
+                                ratings.map((element) => (
+                                    <Comments
+                                        key={element._id}
+                                        image={element.postedBy?.avatar}
+                                        name={`${element.postedBy?.lastname} ${element.postedBy?.firstname}`}
+                                        star={element.star}
+                                        updatedAt={element.updatedAt}
+                                        comment={element.comment}
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-gray-500 text-lg mb-4 italic">This product has no reviews yet.</p>
+                            )}
                         </div>
-                    </>
+                    </div>
                 }
             </div>
         </div>

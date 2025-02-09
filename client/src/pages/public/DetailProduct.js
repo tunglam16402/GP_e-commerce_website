@@ -21,6 +21,7 @@ import withBaseComponent from 'hocs/withBaseComponent';
 import Swal from 'sweetalert2';
 import path from 'utils/path';
 import { getCurrent } from 'store/users/asyncAction';
+import { setLastViewedCategory } from 'store/products/productSlice';
 
 const settings = {
     dots: false,
@@ -47,12 +48,14 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
         thumb: '',
         images: [],
         price: '',
+        discount: '',
+        discountPrice: '',
         color: '',
     });
 
-    //handle show quick view
     useEffect(() => {
         if (data) {
+            console.log('Data:', data);
             setPid(data.pid);
             setCategory(data.category);
         } else if (params && params.pid) {
@@ -60,13 +63,18 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
             setCategory(params.category);
         }
     }, [data, params]);
-    console.log(data);
 
     const fetchProductData = async () => {
+        if (!pid) return; // ⬅ Kiểm tra trước khi gọi API
         const response = await apiGetDetailProducts(pid);
         if (response.success) {
+            console.log(response.productData);
             setProduct(response.productData);
             setCurrentImage(response.productData?.thumb);
+
+            if (response.productData?.category) {
+                dispatch(setLastViewedCategory(response.productData?.category));
+            }
         }
     };
 
@@ -78,12 +86,27 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
     };
 
     useEffect(() => {
+        if (pid) {
+            fetchProductData(); // ⬅ Lấy dữ liệu sản phẩm trước
+        }
+        titleRef.current?.scrollIntoView({ block: 'start' });
+    }, [pid]);
+
+    useEffect(() => {
+        if (category) {
+            fetchProduct(); // ⬅ Gọi API khi category đã cập nhật
+        }
+    }, [category]);
+
+    useEffect(() => {
         if (variant) {
             setCurrentProduct({
                 title: product?.variants?.find((element) => element.sku === variant)?.title,
                 color: product?.variants?.find((element) => element.sku === variant)?.color,
                 images: product?.variants?.find((element) => element.sku === variant)?.images,
                 price: product?.variants?.find((element) => element.sku === variant)?.price,
+                discount: product?.variants?.find((element) => element.sku === variant)?.discount,
+                discountPrice: product?.variants?.find((element) => element.sku === variant)?.discountPrice,
                 thumb: product?.variants?.find((element) => element.sku === variant)?.thumb,
             });
         } else {
@@ -92,18 +115,13 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                 color: product?.color,
                 images: product?.images || [],
                 price: product?.price,
+                discount: product?.discount,
+                discountPrice: product?.discountPrice,
                 thumb: product?.thumb,
             });
         }
     }, [variant]);
 
-    useEffect(() => {
-        if (pid) {
-            fetchProductData();
-            fetchProduct();
-        }
-        titleRef.current?.scrollIntoView({ block: 'start' });
-    }, [pid]);
     //handle after submit rate product
     useEffect(() => {
         if (pid) {
@@ -143,11 +161,42 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
         setCurrentImage(element);
     };
 
+    // const handleAddToCart = async () => {
+    //     if (!current) {
+    //         Swal.fire({
+    //             title: 'Almost...',
+    //             text: 'Your must login first to buy this',
+    //             cancelButtonText: 'Not now',
+    //             confirmButtonText: 'Go login',
+    //             icon: 'info',
+    //             showCancelButton: true,
+    //         }).then(async (response) => {
+    //             if (response.isConfirmed) {
+    //                 navigate({
+    //                     pathname: `/${path.AUTH}`,
+    //                     search: createSearchParams({ redirect: location.pathname }).toString(),
+    //                 });
+    //             }
+    //         });
+    //     }
+    //     const response = await apiUpdateCart({
+    //         pid,
+    //         color: currentProduct.color || product?.color,
+    //         quantity,
+    //         price: currentProduct.price || product.price,
+    //         thumb: currentProduct.thumb || product.thumb,
+    //         title: currentProduct.title || product.title,
+    //     });
+    //     if (response.success) {
+    //         toast.success(response.message);
+    //         dispatch(getCurrent());
+    //     } else toast.error(response.message);
+    // };
     const handleAddToCart = async () => {
         if (!current) {
             Swal.fire({
                 title: 'Almost...',
-                text: 'Your must login first to buy this',
+                text: 'You must login first to buy this',
                 cancelButtonText: 'Not now',
                 confirmButtonText: 'Go login',
                 icon: 'info',
@@ -161,18 +210,28 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                 }
             });
         }
+
+        // Dùng giá giảm nếu có, nếu không có thì dùng giá gốc
+        const finalPrice =
+            currentProduct?.discountPrice || product?.discountPrice > 0
+                ? currentProduct.discountPrice || product?.discountPrice
+                : currentProduct?.price || product?.price;
+
         const response = await apiUpdateCart({
             pid,
-            color: currentProduct.color || product?.color,
+            color: currentProduct?.color || product?.color,
             quantity,
-            price: currentProduct.price || product.price,
-            thumb: currentProduct.thumb || product.thumb,
-            title: currentProduct.title || product.title,
+            price: finalPrice, // Cập nhật giá dùng discountPrice nếu có
+            thumb: currentProduct?.thumb || product?.thumb,
+            title: currentProduct?.title || product?.title,
         });
+
         if (response.success) {
             toast.success(response.message);
             dispatch(getCurrent());
-        } else toast.error(response.message);
+        } else {
+            toast.error(response.message);
+        }
     };
 
     return (
@@ -193,7 +252,7 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                 )}
             >
                 <div className="w-2/5 flex flex-col gap-4 ">
-                    <div className="w-[458px] h-[458px] border object-cover flex items-center z-50 ">
+                    <div className="w-[458px] h-[458px] border object-cover flex items-center z-39 ">
                         {product && (
                             <ImageMagnifier
                                 smallImageSrc={currentProduct.thumb || currentImage}
@@ -230,10 +289,36 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                 </div>
                 <div className={clsx('w-2/5 pr-[24px] flex flex-col gap-4', isQuickView && 'w-1/2')}>
                     <div className="flex items-center justify-between">
-                        <h2 className="text-[34px] font-semibold text-gray-700">{`${formatMoney(
-                            formatPrice(currentProduct.price || product?.price),
-                        )} VND`}</h2>
+                        <div className="flex flex-col justify-center">
+                            {/* Hiển thị giá sau khi giảm nếu có discount */}
+                            {(currentProduct?.discountPrice || product?.discountPrice) > 0 &&
+                                (currentProduct?.discount || product?.discount) > 0 && (
+                                    <span className="text-main text-[34px] py-2 pr-2 pl font-semibold">
+                                        {`${formatMoney(
+                                            formatPrice(currentProduct?.discountPrice || product?.discountPrice),
+                                        )} VND`}
+                                    </span>
+                                )}
+
+                            {/* Hiển thị giá gốc với giảm giá hoặc giá thường */}
+                            {(currentProduct?.discount || product?.discount) > 0 ? (
+                                <div className="flex">
+                                    <span className="text-gray-500 line-through font-semibold mr-2">
+                                        {`${formatMoney(formatPrice(currentProduct?.price || product?.price))} VND`}
+                                    </span>
+                                    <span className="text-red-600 font-semibold mr-2">
+                                        -{currentProduct?.discount || product?.discount}%
+                                    </span>
+                                </div>
+                            ) : (
+                                // Nếu không có discount, hiển thị giá gốc
+                                <span className="text-main text-[34px] py-5 font-semibold">
+                                    {`${formatMoney(formatPrice(currentProduct?.price || product?.price))} VND`}
+                                </span>
+                            )}
+                        </div>
                     </div>
+
                     <div className="flex items-center">
                         {renderStarFromNumber(product?.totalRatings, 18)?.map((element, index) => (
                             <span key={index}>{element}</span>
@@ -324,6 +409,23 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                     </div>
                 )}
             </div>
+            {/* <div
+                className="text-gray-700 w-main m-auto mt-8 text-lg lg:text-xl leading-relaxed mb-10"
+                dangerouslySetInnerHTML={{
+                    __html: product?.detailDescription || '<p>No content available.</p>',
+                }}
+            /> */}
+            <div className="w-main m-auto mt-8 bg-white px-4 border">
+                <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
+                    Detailed Description
+                </h3>
+                <div
+                    className="text-gray-800 text-lg leading-relaxed p-4"
+                    dangerouslySetInnerHTML={{
+                        __html: product?.detailDescription || '<p>No content available.</p>',
+                    }}
+                />
+            </div>
             {!isQuickView && (
                 <div className="w-main m-auto mt-8">
                     <ProductInformation
@@ -335,12 +437,13 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                     ></ProductInformation>
                 </div>
             )}
+
             {!isQuickView && (
-                <div className="w-main m-auto mt-8">
+                <div className="w-main m-auto mt-8 bg-white px-4 border">
                     <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
                         Other also like
                     </h3>
-                    <CustomSlider normal={true} products={relatedProducts}></CustomSlider>
+                    <CustomSlider slidesToShow={4} normal={true} products={relatedProducts}></CustomSlider>
                 </div>
             )}
         </div>

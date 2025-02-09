@@ -79,14 +79,14 @@ const Products = () => {
     }, [sort]);
 
     return (
-        <div className="w-full">
+        <div className="w-full ">
             <div className="h-[86px] flex flex-col justify-center items-center bg-gray-100">
                 <div className=" w-main">
                     <h3 className="font-semibold text-[26px] uppercase">{category}</h3>
                     <Breadcrumbs category={category}></Breadcrumbs>
                 </div>
             </div>
-            <div className="w-main p-4 flex justify-between mt-8 m-auto border">
+            <div className="w-main p-4 flex justify-between mt-8 m-auto  bg-white  border">
                 <div className="w-4/5 flex flex-auto flex-col gap-3">
                     <span className="font-semibold text-sm">Filter by</span>
                     <div className="flex items-center gap-4 mb-2">
@@ -110,7 +110,7 @@ const Products = () => {
                     </div>
                 </div>
             </div>
-            <div className="mt-4 w-main m-auto">
+            <div className="mt-4 w-main m-auto bg-white p-4 border shadow-md">
                 <Masonry
                     breakpointCols={breakpointColumnsObj}
                     className="my-masonry-grid flex mx-[-10px]"

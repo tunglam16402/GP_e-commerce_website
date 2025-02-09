@@ -18,7 +18,7 @@ const userConfig = {
 
 const productConfig = {
     ...commonConfig,
-    whitelist: ['dealDaily'],
+    whitelist: ['dealDaily', 'lastViewedCategory'],
     key: 'shop/deal',
 };
 

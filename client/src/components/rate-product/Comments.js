@@ -8,7 +8,7 @@ const Comments = ({ image = avatarDefault, name = 'Anonymous', comment, star, up
     const { current } = useSelector((state) => state.user);
 
     return (
-        <div className="flex gap-4 mt-4">
+        <div className="flex gap-4 my-4">
             <div className="flex-none">
                 <img
                     src={image || avatarDefault}

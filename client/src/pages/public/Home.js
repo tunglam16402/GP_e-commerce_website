@@ -22,24 +22,24 @@ const Home = ({ navigate }) => {
     const { categories } = useSelector((state) => state.app);
 
     return (
-        <div className='bg-white'>
-            <div className="w-main flex ">
+        <div className="">
+            <div className="w-main flex bg-white p-4 border shadow-md ">
                 <div className="flex flex-col gap-5 w-[25%] flex-auto ">
                     <Sidebar></Sidebar>
                     <DealDaily></DealDaily>
                 </div>
                 <div className="flex flex-col gap-5 pl-5 w-[75%] flex-auto ">
                     <Banner></Banner>
-                    {/* <BestSeller></BestSeller> */}
+                    <BestSeller></BestSeller>
                 </div>
             </div>
-            <div className="mt-8">
+            <div className="mt-8 bg-white p-4 border shadow-md">
                 <ProductHomePage />
             </div>
-            <div className="mt-8">
+            <div className="mt-8 bg-white p-4 border shadow-md">
                 <FeatureProducts></FeatureProducts>
             </div>
-            <div className="mt-8 w-main">
+            <div className="mt-8 w-main bg-white p-4 border shadow-md">
                 <h3 className="text-4xl font-semibold text-gray-900 py-6 border-b-4 border-main uppercase tracking-widest">
                     new arrivals
                 </h3>
@@ -47,9 +47,9 @@ const Home = ({ navigate }) => {
                     <CustomSlider products={newProducts} slidesToShow={4}></CustomSlider>
                 </div>
             </div>
-            <div className="w-main">
+            <div className="w-main mt-8 bg-white p-4 border shadow-md">
                 <h3 className="text-4xl font-semibold text-gray-900 py-6 border-b-4 border-main uppercase tracking-widest">
-                     hot collections
+                    hot collections
                 </h3>
                 <div className="flex flex-wrap gap-6 mt-6">
                     {categories
@@ -57,7 +57,7 @@ const Home = ({ navigate }) => {
                         ?.map((element) => (
                             <div
                                 key={element._id}
-                                className="w-[390px] bg-white shadow-xl rounded-lg overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#6C757D]"
+                                className="w-[376px] bg-white shadow-xl rounded-lg overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#6C757D]"
                             >
                                 <div className="flex p-6 gap-6 items-center hover:bg-gray-100 transition-all duration-300 rounded-lg">
                                     <img
@@ -92,7 +92,7 @@ const Home = ({ navigate }) => {
                         ))}
                 </div>
             </div>
-            <div className="my-8 w-main">
+            <div className="my-8 w-main bg-white p-4 border shadow-md">
                 <h3 className="text-4xl font-semibold text-gray-900 py-6 border-b-4 border-main uppercase tracking-widest">
                     blog posts
                 </h3>

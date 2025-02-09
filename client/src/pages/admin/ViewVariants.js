@@ -85,6 +85,7 @@ const ViewVariants = ({ product, render, setViewVariantsProduct }) => {
                             <th className="px-4 py-3">Title</th>
                             <th className="px-4 py-3">Color</th>
                             <th className="px-4 py-3">Price</th>
+                            <th className="px-4 py-3">Discount</th>
                             <th className="px-4 py-3">Actions</th>
                         </tr>
                     </thead>
@@ -107,6 +108,7 @@ const ViewVariants = ({ product, render, setViewVariantsProduct }) => {
                                     <td className="px-4 py-2">{variant.title}</td>
                                     <td className="px-4 py-2">{variant.color}</td>
                                     <td className="px-4 py-2">{variant.price} VND</td>
+                                    <td className="px-4 py-2">{variant.discount}</td>
                                     <td className="px-4 py-2 flex flex-col justify-center items-center">
                                         <button
                                             onClick={() => seteditVariant(variant)}

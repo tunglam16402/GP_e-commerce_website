@@ -34,6 +34,7 @@ const UpdateProduct = ({ editProduct, render, setEditProduct }) => {
             reset({
                 title: editProduct.title || '',
                 price: editProduct.price || '',
+                discount: editProduct.discount || '',
                 quantity: editProduct.quantity || '',
                 color: editProduct.color || '',
                 category: editProduct.category || '',
@@ -68,18 +69,6 @@ const UpdateProduct = ({ editProduct, render, setEditProduct }) => {
         setPreview((prev) => ({ ...prev, thumb: base64Thumb }));
     };
 
-    // const handlePreviewImages = async (files) => {
-    //     const imagesPreview = [];
-    //     for (let file of files) {
-    //         if (file.type !== 'image/png' && file.type !== 'image/jpeg') {
-    //             toast.warning('File not support');
-    //             return;
-    //         }
-    //         const base64 = await getBase64(file);
-    //         imagesPreview.push(base64);
-    //     }
-    //     setPreview((prev) => ({ ...prev, images: imagesPreview }));
-    // };
     const handlePreviewImages = async (files) => {
         const imagesPreview = [];
         for (let file of files) {
@@ -94,13 +83,6 @@ const UpdateProduct = ({ editProduct, render, setEditProduct }) => {
         setPreview({ images: imagesPreview });
     };
 
-    // useEffect(() => {
-    //     if (watch('thumb')) handlePreviewThumb(watch('thumb')[0]);
-    // }, [watch('thumb')]);
-
-    // useEffect(() => {
-    //     if (watch('images')) handlePreviewImages(watch('images'));
-    // }, [watch('images')]);
     const thumb = watch('thumb');
     const images = watch('images');
 
@@ -211,6 +193,29 @@ const UpdateProduct = ({ editProduct, render, setEditProduct }) => {
                             placeholder="Price of new product"
                             type="number"
                         ></InputForm>
+                        <InputForm
+                            label="Discount (%)"
+                            register={register}
+                            errors={errors}
+                            id="discount"
+                            placeholder="Enter discount percentage"
+                            type="number"
+                            style="flex-auto"
+                            min={0} // Đảm bảo giá trị không dưới 0
+                            max={100} // Đảm bảo giá trị không vượt quá 100
+                            validate={{
+                                required: 'This field is required',
+                                min: {
+                                    value: 0,
+                                    message: 'Discount cannot be less than 0',
+                                },
+                                max: {
+                                    value: 100,
+                                    message: 'Discount cannot be more than 100',
+                                },
+                            }}
+                            className="transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 border border-gray-300 rounded-lg shadow-md p-4"
+                        />
                         <InputForm
                             label="Quantity"
                             register={register}

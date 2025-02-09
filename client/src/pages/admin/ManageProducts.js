@@ -31,10 +31,10 @@ const ManageProducts = () => {
     const [editProduct, setEditProduct] = useState(null);
     const [update, setUpdate] = useState(false);
     const [customizeVariant, setCustomizeVariant] = useState(null);
-    const [viewVariantsProduct, setViewVariantsProduct] = useState(null); // Thêm state cho sản phẩm cần xem variants
+    const [viewVariantsProduct, setViewVariantsProduct] = useState(null); 
 
     const handleViewVariants = (product) => {
-        setViewVariantsProduct(product); // Đưa sản phẩm vào state viewVariantsProduct để hiển thị variant
+        setViewVariantsProduct(product); 
     };
 
     const render = useCallback(() => {
@@ -147,6 +147,7 @@ const ManageProducts = () => {
                         <th className="px-4 py-3">Category</th>
                         <th className="px-4 py-3">Color</th>
                         <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3">Discount</th>
                         <th className="px-4 py-3">Quantity</th>
                         <th className="px-4 py-3">Sold</th>
                         <th className="px-4 py-3">Ratings</th>
@@ -178,6 +179,7 @@ const ManageProducts = () => {
                             <td>{element.category}</td>
                             <td>{element.color}</td>
                             <td>{formatMoney(element.price)} VND</td>
+                            <td>{element.discount}%</td>
                             <td>{element.quantity}</td>
                             <td>{element.sold}</td>
                             <td>{element.totalRatings}</td>

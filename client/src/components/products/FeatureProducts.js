@@ -18,7 +18,7 @@ const FeatureProducts = () => {
     return (
         <div>
             <div className="w-main">
-                <h3 className="text-4xl font-semibold text-gray-900 py-6 border-b-4 border-main uppercase tracking-widest">
+                <h3 className="text-4xl font-semibold text-gray-900 pb-6 pt-2 border-b-4 border-main uppercase tracking-widest">
                     FEATURE PRODUCTS
                 </h3>
                 <div className="flex flex-wrap mt-[15px] mx-[-10px]">

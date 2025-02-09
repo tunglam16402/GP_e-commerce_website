@@ -54,11 +54,13 @@ const Product = ({
                     }
                 });
             }
+            const finalPrice = productData?.discountPrice > 0 ? productData.discountPrice : productData?.price;
+
             const response = await apiUpdateCart({
                 pid: productData?._id,
                 color: productData?.color,
                 quantity: 1,
-                price: productData?.price,
+                price: finalPrice,
                 thumb: productData?.thumb,
                 title: productData?.title,
             });
@@ -171,7 +173,51 @@ const Product = ({
                             <span key={index}>{element}</span>
                         ))}
                     </span>
-                    <span className="">{`${formatMoney(productData?.price)} VNĐ`}</span>
+                    {/* <div className="flex flex-col items-start">
+                        <div className="flex items-center">
+                            {productData?.discount > 0 ? (
+                                <>
+                                    <span className="text-gray-500 line-through font-semibold mr-2">
+                                        {formatMoney(productData?.price)} VNĐ
+                                    </span>
+                                    <span className="text-red-600 font-semibold mr-2">
+                                        -{productData?.discount}% 
+                                    </span>
+                                </>
+                            ) : (
+                                <span>{formatMoney(productData?.price)} VNĐ</span>
+                            )}
+                        </div>
+                        {productData?.discountPrice && productData?.discountPrice > 0 && (
+                            <span className="text-main text-[24px] py-2 font-semibold">
+                                {formatMoney(productData?.discountPrice)} VNĐ
+                            </span>
+                        )}
+                    </div> */}
+                    <div className="flex flex-col items-start">
+                        <div className="flex items-center">
+                            {/* Giá gốc bị gạch ngang và phần trăm giảm giá */}
+                            {productData?.discount > 0 ? (
+                                <>
+                                    <span className="text-gray-500 line-through font-semibold mr-2">
+                                        {formatMoney(productData?.price)} VNĐ
+                                    </span>
+                                    <span className="text-red-600 font-semibold mr-2">-{productData?.discount}%</span>
+                                </>
+                            ) : (
+                                // Nếu không có discount, chỉ hiển thị giá gốc
+                                <span className="text-main text-[22px] py-5 font-semibold">
+                                    {formatMoney(productData?.price)} VNĐ
+                                </span>
+                            )}
+                        </div>
+                        {/* Hiển thị Giá Sau Giảm (nếu có) */}
+                        {productData?.discountPrice && productData?.discountPrice > 0 && productData?.discount > 0 && (
+                            <span className="text-main text-[22px] py-2 font-semibold">
+                                {formatMoney(productData?.discountPrice)} VNĐ
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

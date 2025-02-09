@@ -1,18 +1,18 @@
 import React, { memo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import path from 'utils/path';
 import { getCurrent } from 'store/users/asyncAction';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import icons from 'utils/icons';
 import { logout, clearMessage } from 'store/users/userSlice';
 import Swal from 'sweetalert2';
 import { RiPhoneFill } from 'react-icons/ri';
+import withBaseComponent from 'hocs/withBaseComponent';
 
 const { IoLogOutSharp } = icons;
 
-const TopHeader = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+const TopHeader = ({ dispatch, navigate, location }) => {
+    const isLoginPage = location.pathname === `/${path.AUTH}`;
     const { isLoggedIn, current, message } = useSelector((state) => state.user);
 
     useEffect(() => {
@@ -76,4 +76,4 @@ const TopHeader = () => {
     );
 };
 
-export default memo(TopHeader);
+export default withBaseComponent(memo(TopHeader));

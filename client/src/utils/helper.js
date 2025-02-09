@@ -122,6 +122,12 @@ export const validate = (payload, setInvalidFields) => {
 
 export const formatPrice = (number) => Math.round(number / 1000) * 1000;
 
+export const formatDollarToVND = (amount) => {
+    const exchangeRate = 25000; // 1 USD = 24,000 VND (cập nhật nếu cần)
+    const vndAmount = amount * exchangeRate;
+    return vndAmount.toLocaleString('vi-VN') + ' VND';
+};
+
 //
 export const generateRange = (start, end) => {
     const length = end + 1 - start;

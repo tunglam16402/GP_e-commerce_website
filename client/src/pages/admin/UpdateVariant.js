@@ -34,6 +34,7 @@ const UpdateVariant = ({ editVariant, render, seteditVariant }) => {
             reset({
                 title: editVariant.title || '',
                 price: editVariant.price || '',
+                discount: editVariant.discount || '',
                 color: editVariant.color || '',
             });
             setPreview((prev) => ({
@@ -171,10 +172,22 @@ const UpdateVariant = ({ editVariant, render, seteditVariant }) => {
                     ></InputForm>
                     <div className="w-full my-6 flex gap-4">
                         <InputForm
-                            label="Price"
+                            label="Price (VND)"
                             register={register}
                             errors={errors}
                             id="price"
+                            validate={{
+                                required: 'Need fill this fields',
+                            }}
+                            style="flex-auto"
+                            placeholder="Price of new product"
+                            type="number"
+                        ></InputForm>
+                        <InputForm
+                            label="Discount (%)"
+                            register={register}
+                            errors={errors}
+                            id="discount"
                             validate={{
                                 required: 'Need fill this fields',
                             }}
