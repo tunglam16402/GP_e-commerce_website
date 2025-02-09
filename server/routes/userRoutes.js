@@ -8,6 +8,7 @@ router.post('/register', Controllers.register);
 router.post('/mock', Controllers.createUser);
 router.put('/finalRegister/:token', Controllers.finalRegister);
 router.post('/login', Controllers.login);
+router.post('/google-login', Controllers.googleLogin);
 router.get('/current', verifyAccessToken, Controllers.getCurrent);
 router.post('/refreshtoken', Controllers.refreshAccessToken);
 router.get('/logout', Controllers.logout);

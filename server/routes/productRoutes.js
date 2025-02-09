@@ -22,23 +22,8 @@ router.post(
 router.get('/', Controllers.getAllProduct);
 router.put('/ratings', verifyAccessToken, Controllers.ratings);
 
-// router.put(
-//     '/update-variant/:pid/:variantId',
-//     [verifyAccessToken, isAdmin],
-//     upload.fields([
-//         {
-//             name: 'images',
-//             maxCount: 10,
-//         },
-//         {
-//             name: 'thumb',
-//             maxCount: 1,
-//         },
-//     ]),
-//     Controllers.updateVariant,
-// );
 router.put(
-    '/update-variant/:sku', // Chỉ dùng SKU thay vì pid và variantId
+    '/update-variant/:sku', 
     [verifyAccessToken, isAdmin],
     upload.fields([
         {

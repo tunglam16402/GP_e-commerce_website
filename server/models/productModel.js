@@ -18,6 +18,10 @@ var productSchema = new mongoose.Schema(
             type: Array,
             required: true,
         },
+        detailDescription: {
+            type: Array,
+            required: true,
+        },
         brand: {
             type: String,
             required: true,
@@ -29,6 +33,13 @@ var productSchema = new mongoose.Schema(
         price: {
             type: Number,
             required: true,
+        },
+        discount: {
+            type: Number, // Phần trăm giảm giá (0-100)
+            default: 0,
+        },
+        discountPrice: {
+            type: Number, // Giá sau khi giảm
         },
         category: {
             type: String,
@@ -48,7 +59,7 @@ var productSchema = new mongoose.Schema(
         },
         color: {
             type: String,
-            require: true,
+            required: true,
         },
         ratings: [
             {
@@ -71,6 +82,8 @@ var productSchema = new mongoose.Schema(
             {
                 color: String,
                 price: Number,
+                discount: Number,
+                discountPrice: Number,
                 thumb: String,
                 images: Array,
                 title: String,

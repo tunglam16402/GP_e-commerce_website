@@ -7,30 +7,161 @@ const sendMail = require('../utils/sendMail');
 const crypto = require('crypto');
 const makeToken = require('uniqid');
 const { users } = require('../utils/constants');
+const { OAuth2Client } = require('google-auth-library');
 
-//API Register
-// const register = asyncHandler(async (req, res) => {
-//     const { email, password, firstname, lastname } = req.body;
-//     // nếu không có required : true thì không cần thiết phải chọc về db
-//     if (!email || !password || !firstname || !lastname) {
-//         return res.status(400).json({
-//             success: false,
-//             message: 'Missing input',
-//         });
+// Sử dụng biến môi trường để tránh hardcode
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const client = new OAuth2Client(CLIENT_ID);
+
+// const googleLogin = asyncHandler(async (req, res) => {
+//     let { token } = req.body;
+
+//     if (!token) {
+//         return res.status(400).json({ success: false, message: 'Thiếu Google token' });
 //     }
-//     // tìm người dùng theo email xem đã tồn tại chưa
-//     const user = await User.findOne({ email: email });
-//     if (user) {
-//         throw new Error('User already exists');
-//         // nếu không tồn tại email, tạo người dùng mới
-//     } else {
-//         const newUser = await User.create(req.body);
-//         return res.status(200).json({
-//             success: newUser ? true : false,
-//             message: newUser ? 'Registration successful. Please proceed to login.' : 'Something went wrong.',
+
+//     try {
+//         console.log('Token nhận được:', token);
+
+//         const ticket = await client.verifyIdToken({
+//             idToken: token.trim(),
+//             audience: CLIENT_ID,
 //         });
+
+//         const payload = ticket.getPayload();
+//         console.log('Google User Payload:', payload);
+
+//         const { email, picture, sub: googleId, given_name, family_name } = payload;
+
+//         if (!email) {
+//             return res.status(400).json({ success: false, message: 'Không lấy được email từ Google' });
+//         }
+
+//         let user = await User.findOne({ email });
+
+//         if (!user) {
+//             console.log('Tạo người dùng mới');
+//             user = await User.create({
+//                 email,
+//                 firstname: given_name,
+//                 lastname: family_name,
+//                 avatar: picture,
+//                 googleId,
+//                 password: null,
+//                 role: 2006,
+//             });
+//         } else {
+//             console.log('Người dùng đã tồn tại');
+//         }
+
+//         const accessToken = generateAccessToken(user._id, user.role);
+//         const refreshToken = generateRefreshToken(user._id);
+
+//         user.refreshToken = refreshToken;
+//         await user.save();
+
+//         res.cookie('refreshToken', refreshToken, {
+//             httpOnly: true,
+//             secure: process.env.NODE_ENV === 'production',
+//             sameSite: 'Strict',
+//             maxAge: 7 * 24 * 60 * 60 * 1000,
+//         });
+
+//         return res.status(200).json({
+//             success: true,
+//             accessToken,
+//             userData: {
+//                 _id: user._id,
+//                 name: user.firstname + ' ' + user.lastname,
+//                 email: user.email,
+//                 avatar: user.avatar,
+//                 role: user.role,
+//             },
+//         });
+//     } catch (error) {
+//         console.error('Lỗi xác thực Google:', error);
+//         return res.status(401).json({ success: false, message: 'Token Google không hợp lệ' });
 //     }
 // });
+
+const googleLogin = asyncHandler(async (req, res) => {
+    let { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({ success: false, message: 'Thiếu Google token' });
+    }
+
+    try {
+        console.log('Token nhận được:', token);
+
+        const ticket = await client.verifyIdToken({
+            idToken: token.trim(),
+            audience: CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        console.log('Google User Payload:', payload);
+
+        const { email, picture, sub: googleId, given_name, family_name } = payload;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Không lấy được email từ Google' });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            console.log('Tạo người dùng mới');
+            user = new User({
+                email,
+                firstname: given_name,
+                lastname: family_name,
+                avatar: picture,
+                googleId,
+                password: null,
+                role: 2006,
+            });
+
+            await user.save();
+            console.log('Người dùng mới đã được lưu:', user);
+        } else {
+            console.log('Người dùng đã tồn tại:', user);
+        }
+
+        const accessToken = generateAccessToken(user._id, user.role);
+        const refreshToken = generateRefreshToken(user._id);
+
+        console.log('Access Token:', accessToken);
+        console.log('Refresh Token:', refreshToken);
+
+        user.refreshToken = refreshToken;
+        await user.save();
+        console.log('Refresh token đã lưu vào DB');
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            success: true,
+            accessToken,
+            userData: {
+                _id: user._id,
+                name: user.firstname + ' ' + user.lastname,
+                email: user.email,
+                avatar: user.avatar,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        console.error('Lỗi xác thực Google:', error);
+        return res.status(401).json({ success: false, message: 'Token Google không hợp lệ' });
+    }
+});
+
 const register = asyncHandler(async (req, res) => {
     const { email, password, firstname, lastname, mobile } = req.body;
     if (!email || !password || !firstname || !lastname || !mobile) {
@@ -259,72 +390,83 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 //API get info all user login (Admin)
+// const getUsers = asyncHandler(async (req, res) => {
+//     const queries = { ...req.query };
+
+//     // Tách các trường đặc biệt ra khỏi query
+//     const excludeFields = ['limit', 'sort', 'page', 'fields'];
+//     excludeFields.forEach((element) => delete queries[element]);
+
+//     // Format lại operators cho đúng cú pháp mongoose
+//     let queryString = JSON.stringify(queries);
+//     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => {
+//         return `$${matchedElement}`;
+//     });
+//     const formattedQueries = JSON.parse(queryString);
+
+//     // Filtering
+//     if (queries?.name) {
+//         formattedQueries.name = { $regex: queries.name, $options: 'i' };
+//     }
+
+//     let queryCommand = User.find(formattedQueries);
+
+//     // Search admin user
+//     if (req.query.q) {
+//         delete formattedQueries.q;
+//         formattedQueries['$or'] = [
+//             { firstname: { $regex: req.query.q, $options: 'i' } },
+//             { lastname: { $regex: req.query.q, $options: 'i' } },
+//             { email: { $regex: req.query.q, $options: 'i' } },
+//         ];
+//         queryCommand = User.find(formattedQueries);
+//     }
+
+//     // Sorting
+//     if (req.query.sort) {
+//         const sortBy = req.query.sort.split(',').join(' ');
+//         queryCommand = queryCommand.sort(sortBy);
+//     }
+
+//     // Fields limited
+//     if (req.query.fields) {
+//         const fields = req.query.fields.split(',').join(' ');
+//         queryCommand = queryCommand.select(fields);
+//     }
+
+//     const page = +req.query.page || 1;
+//     const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
+//     const skip = (page - 1) * limit;
+//     queryCommand.skip(skip).limit(limit);
+
+//     // Execute the query with error handling
+//     try {
+//         const response = await queryCommand.exec();
+//         const counts = await User.find(formattedQueries).countDocuments();
+
+//         res.status(200).json({
+//             success: response ? true : false,
+//             counts,
+//             users: response ? response : 'Cannot get users',
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             success: false,
+//             message: error.message,
+//         });
+//     }
+// });
+
 const getUsers = asyncHandler(async (req, res) => {
-    // const queries = { ...req.query };
-    // //Tách các trường đặc biệt ra khỏi query
-    // const excludeFields = ['limit', 'sort', 'page', 'fields'];
-    // excludeFields.forEach((element) => delete queries[element]);
-    // //format lại operators cho đúng cú pháp mongoose
-    // let queryString = JSON.stringify(queries);
-    // queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => {
-    //     return `$${matchedElement}`;
-    // });
-    // const formattedQueries = JSON.parse(queryString);
-
-    // //Filtering
-    // if (queries?.name) {
-    //     formattedQueries.name = { $regex: queries.name, $options: 'i' };
-    // }
-    // let queryCommand = User.find(formattedQueries);
-    // //search admin user
-    // console.log('Query parameter q:', req.query.q);
-    // if (req.query.q) {
-    //     delete formattedQueries.q;
-    //     formattedQueries['$or'] = [
-    //         { firstname: { $regex: req.query.q, $options: 'i' } },
-    //         { lastname: { $regex: req.query.q, $options: 'i' } },
-    //         { email: { $regex: req.query.q, $options: 'i' } },
-    //     ];
-    // }
-
-    // //Sorting
-    // if (req.query.sort) {
-    //     // chuyển chuỗi từ dấu phẩy sang dấu cách eg    : abc,def => [abc, efg] => abc def
-    //     const sortBy = req.query.sort.split(',').join(' ');
-    //     queryCommand = queryCommand.sort(sortBy);
-    // }
-
-    // //Fields limtited
-    // if (req.query.fields) {
-    //     const fields = req.query.fields.split(',').join(' ');
-    //     queryCommand = queryCommand.select(fields);
-    // }
-
-    // //Pagination
-    // // dấu + để chuyển từ dạng chuỗi sang dạng số(string to number)
-    // const page = +req.query.page || 1;
-    // const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
-    // const skip = (page - 1) * limit;
-    // queryCommand.skip(skip).limit(limit);
-
-    // const response = await queryCommand.exec();
-    // const counts = await User.find(formattedQueries).countDocuments();
-    // res.status(200).json({
-    //     success: response ? true : false,
-    //     counts,
-    //     users: response ? response : 'Cannot get users',
-    // });
     const queries = { ...req.query };
 
-    // Tách các trường đặc biệt ra khỏi query
+    // Tách các trường đặc biệt khỏi query
     const excludeFields = ['limit', 'sort', 'page', 'fields'];
     excludeFields.forEach((element) => delete queries[element]);
 
-    // Format lại operators cho đúng cú pháp mongoose
+    // Format lại operators cho đúng cú pháp Mongoose
     let queryString = JSON.stringify(queries);
-    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => {
-        return `$${matchedElement}`;
-    });
+    queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matched) => `$${matched}`);
     const formattedQueries = JSON.parse(queryString);
 
     // Filtering
@@ -332,17 +474,15 @@ const getUsers = asyncHandler(async (req, res) => {
         formattedQueries.name = { $regex: queries.name, $options: 'i' };
     }
 
+    // Xây dựng query tìm kiếm
     let queryCommand = User.find(formattedQueries);
 
-    // Search admin user
     if (req.query.q) {
-        delete formattedQueries.q;
         formattedQueries['$or'] = [
-            { firstname: { $regex: req.query.q, $options: 'i' } },
-            { lastname: { $regex: req.query.q, $options: 'i' } },
-            { email: { $regex: req.query.q, $options: 'i' } },
+            { firstname: { $regex: req.query.q.trim(), $options: 'i' } },
+            { lastname: { $regex: req.query.q.trim(), $options: 'i' } },
+            { email: { $regex: req.query.q.trim(), $options: 'i' } },
         ];
-        queryCommand = User.find(formattedQueries);
     }
 
     // Sorting
@@ -351,31 +491,33 @@ const getUsers = asyncHandler(async (req, res) => {
         queryCommand = queryCommand.sort(sortBy);
     }
 
-    // Fields limited
+    // Fields limit
     if (req.query.fields) {
         const fields = req.query.fields.split(',').join(' ');
         queryCommand = queryCommand.select(fields);
     }
 
     // Pagination
-    // const page = +req.query.page || 1;
-    // const limit = +req.query.limit || process.env.LIMIT_PRODUCTS || 10;
-    // const skip = (page - 1) * limit;
-    // queryCommand = queryCommand.skip(skip).limit(limit);
     const page = +req.query.page || 1;
     const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
     const skip = (page - 1) * limit;
-    queryCommand.skip(skip).limit(limit);
+    queryCommand = queryCommand.skip(skip).limit(limit);
 
-    // Execute the query with error handling
     try {
+        // Lấy danh sách user theo query
         const response = await queryCommand.exec();
-        const counts = await User.find(formattedQueries).countDocuments();
+
+        // Tổng số user sau khi lọc
+        const counts = await User.countDocuments(formattedQueries);
+
+        // Tổng số user không có điều kiện lọc
+        const totalUsers = await User.estimatedDocumentCount();
 
         res.status(200).json({
-            success: response ? true : false,
-            counts,
-            users: response ? response : 'Cannot get users',
+            success: true,
+            totalUsers, // Tổng số user trong hệ thống
+            counts, // Tổng số user sau khi lọc
+            users: response,
         });
     } catch (error) {
         res.status(500).json({
@@ -438,14 +580,59 @@ const updateUserAddress = asyncHandler(async (req, res) => {
     });
 });
 
+// const updateCart = asyncHandler(async (req, res) => {
+//     const { _id } = req.user;
+//     const { pid, quantity = 1, color, price, thumb, title } = req.body;
+//     if (!pid || !color) {
+//         throw new Error('Missing inputs');
+//     }
+//     const user = await User.findById(_id).select('cart');
+//     //check xem sp đã có trong giỏ hàng chưa
+//     const alreadyProduct = user?.cart?.find((element) => element.product.toString() === pid && element.color === color);
+
+//     if (alreadyProduct) {
+//         const response = await User.updateOne(
+//             { cart: { $elemMatch: alreadyProduct } },
+//             {
+//                 $set: {
+//                     'cart.$.quantity': quantity,
+//                     'cart.$.price': price,
+//                     'cart.$.thumb': thumb,
+//                     'cart.$.title': title,
+//                 },
+//             },
+//             { new: true },
+//         );
+//         return res.status(200).json({
+//             success: response ? true : false,
+//             message: response ? 'Product has been added to cart' : 'Something went wrong',
+//         });
+//     } else {
+//         const response = await User.findByIdAndUpdate(
+//             _id,
+//             { $push: { cart: { product: pid, quantity, color, price, thumb, title } } },
+//             { new: true },
+//         );
+//         return res.status(200).json({
+//             success: response ? true : false,
+//             message: response ? 'Product has been added to cart' : 'Something went wrong',
+//         });
+//     }
+// });
+
 const updateCart = asyncHandler(async (req, res) => {
     const { _id } = req.user;
-    const { pid, quantity = 1, color, price, thumb, title } = req.body;
+    const { pid, quantity = 1, color, price, discountPrice, thumb, title } = req.body;
+
     if (!pid || !color) {
         throw new Error('Missing inputs');
     }
+
+    const finalPrice = discountPrice && discountPrice > 0 ? discountPrice : price;
+
     const user = await User.findById(_id).select('cart');
-    //check xem sp đã có trong giỏ hàng chưa
+
+    // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
     const alreadyProduct = user?.cart?.find((element) => element.product.toString() === pid && element.color === color);
 
     if (alreadyProduct) {
@@ -454,23 +641,29 @@ const updateCart = asyncHandler(async (req, res) => {
             {
                 $set: {
                     'cart.$.quantity': quantity,
-                    'cart.$.price': price,
+                    'cart.$.price': finalPrice, // Cập nhật giá dựa vào discount
                     'cart.$.thumb': thumb,
                     'cart.$.title': title,
                 },
             },
             { new: true },
         );
+
         return res.status(200).json({
             success: response ? true : false,
-            message: response ? 'Product has been added to cart' : 'Something went wrong',
+            message: response ? 'Product has been updated in cart' : 'Something went wrong',
         });
     } else {
         const response = await User.findByIdAndUpdate(
             _id,
-            { $push: { cart: { product: pid, quantity, color, price, thumb, title } } },
+            {
+                $push: {
+                    cart: { product: pid, quantity, color, price: finalPrice, thumb, title },
+                },
+            },
             { new: true },
         );
+
         return res.status(200).json({
             success: response ? true : false,
             message: response ? 'Product has been added to cart' : 'Something went wrong',
@@ -531,6 +724,7 @@ module.exports = {
     register,
     finalRegister,
     login,
+    googleLogin,
     getCurrent,
     refreshAccessToken,
     logout,
