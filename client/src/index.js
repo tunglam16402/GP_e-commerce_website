@@ -21,7 +21,9 @@ root.render(
     //         </BrowserRouter>
     //     </PersistGate>
     // </Provider>,
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+
+    // <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId="110463272718-ful2o52v5rhifhh3sphshrss7nr34eoc.apps.googleusercontent.com">
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
                 <BrowserRouter>
