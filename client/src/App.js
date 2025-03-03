@@ -28,8 +28,18 @@ import {
     CreateBlog,
     ManageProductCategory,
     CreateProductCategory,
+    StockManagement,
 } from 'pages/admin';
-import { MemberLayout, Personal, HistoryBuy, WishList, CheckOut } from 'pages/member';
+import {
+    MemberLayout,
+    Personal,
+    HistoryBuy,
+    WishList,
+    CheckOut,
+    HistoryView,
+    ChangePassword,
+    PurchaseInvoice,
+} from 'pages/member';
 import path from 'utils/path';
 import { getCategories } from 'store/app/asyncAction';
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,6 +47,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ScrollToTop, Modal, Cart, Chatbot } from 'components';
 import { showCart } from 'store/app/appSlice';
+import './i18n'; // Import cấu hình i18n
 
 function App() {
     const dispatch = useDispatch();
@@ -58,7 +69,6 @@ function App() {
             )}
             {isShowModal && <Modal>{modalChildren}</Modal>}
             <Routes>
-                <Route path={path.CHECKOUT} element={<CheckOut />}></Route>
                 <Route path={path.PUBLIC} element={<Public />}>
                     <Route path={path.HOME} element={<Home />}></Route>
                     <Route path={path.PRODUCTS__CATEGORY} element={<Products />}></Route>
@@ -70,6 +80,8 @@ function App() {
                     <Route path={path.RESET_PASSWORD} element={<ResetPassword />}></Route>
                     <Route path={path.FINAL_REGISTER} element={<FinalRegister />}></Route>
                     <Route path={path.DETAIL_CART} element={<DetailCart />}></Route>
+                    <Route path={path.CHECKOUT} element={<CheckOut />}></Route>
+                    <Route path={path.PURCHASEINVOICE} element={<PurchaseInvoice />}></Route>
                     <Route path={path.DETAIL_BLOGS} element={<DetailBlog />}></Route>
                     <Route path={path.AUTH} element={<Authentication />}></Route>
                     <Route path={path.ALL} element={<Home />}></Route>
@@ -82,6 +94,7 @@ function App() {
                     <Route path={path.MANAGE_PRODUCT_CATEGORY} element={<ManageProductCategory />}></Route>
                     <Route path={path.MANAGE_BLOG} element={<ManageBlog />}></Route>
                     <Route path={path.MANAGE_ORDER} element={<ManageOrders />}></Route>
+                    <Route path={path.MANAGE_STOCK} element={<StockManagement />}></Route>
                     <Route path={path.CREATE_PRODUCTS} element={<CreateProducts />}></Route>
                     <Route path={path.CREATE_BRAND} element={<CreateBrand />}></Route>
                     <Route path={path.CREATE_PRODUCT_CATEGORY} element={<CreateProductCategory />}></Route>
@@ -89,8 +102,10 @@ function App() {
                 </Route>
                 <Route path={path.MEMBER} element={<MemberLayout />}>
                     <Route path={path.PERSONAL} element={<Personal />}></Route>
+                    <Route path={path.HISTORY_VIEW} element={<HistoryView />}></Route>
                     <Route path={path.WISHLIST} element={<WishList />}></Route>
                     <Route path={path.HISTORY_BUY} element={<HistoryBuy />}></Route>
+                    <Route path={path.CHANGE_PASSWORD} element={<ChangePassword />}></Route>
                 </Route>
             </Routes>
             <Chatbot />

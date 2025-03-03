@@ -16,7 +16,7 @@ import { FaSearch } from 'react-icons/fa';
 
 const { RiPhoneFill, GrMail, FaShoppingCart, FaUser } = icons;
 
-const Header = ({ dispatch, navigate, location }) => {
+const Header = ({ dispatch, navigate, location, t }) => {
     const {
         register,
         formState: { errors },
@@ -25,16 +25,9 @@ const Header = ({ dispatch, navigate, location }) => {
     } = useForm();
     const { current } = useSelector((state) => state.user);
     const [isShowOption, setIsShowOption] = useState(false);
+    const isCheckoutPage = location.pathname === '/checkout';
+    const isInvoicePage = location.pathname === '/purchase-invoice';
 
-    // const queriesDebounce = useDebounce(watch('q'), 800);
-
-    // useEffect(() => {
-    //     if (queriesDebounce?.trim()) {
-    //         const searchKeyword = encodeURIComponent(queriesDebounce.trim());
-
-    //         navigate(`/${searchKeyword}?q=${searchKeyword}`, { replace: false }); // Sử dụng replace: false (mặc định)
-    //     }
-    // }, [queriesDebounce, navigate]);
     const queries = watch('q');
 
     const handleSearchClick = () => {
@@ -74,82 +67,189 @@ const Header = ({ dispatch, navigate, location }) => {
     }, []);
 
     return (
+        // <div className="w-full flex items-center justify-center bg-white fixed top-[40px] left-0 right-0 z-40">
+        //     <div className="w-main flex justify-between items-center h-[110px] py-[35px]">
+        //         {isCheckoutPage || isInvoicePage ? (
+        //             <div className="flex items-center gap-4">
+        //                 <Link to={`/${path.HOME}`}>
+        //                     <img src={logo} alt="logo" className="w-[234px] object-contain" />
+        //                 </Link>
+        //                 <div className="h-[30px] w-[2px] bg-gray-300"></div>
+        //                 <span className="text-red-600 text-[28px] ">
+        //                     {isCheckoutPage ? 'Check Out' : isInvoicePage ? 'Purchase Invoice' : ''}
+        //                 </span>
+        //             </div>
+        //         ) : (
+        //             <>
+        //                 <Link to={`/${path.HOME}`}>
+        //                     <img src={logo} alt="logo" className="w-[234px] object-contain" />
+        //                 </Link>
+        //                 <div className="flex">
+        //                     <div className="flex flex-col w-[440px]">
+        //                         <div className="relative">
+        //                             <InputForm
+        //                                 id="q"
+        //                                 onKeyDown={handleKeyDown}
+        //                                 onClick={handleSearchClick}
+        //                                 register={register}
+        //                                 errors={errors}
+        //                                 fullWidth
+        //                                 placeholder="What product are you looking for? "
+        //                                 style="rounded-2xl focus:ring-2 focus:ring-main focus:outline-none transition-all duration-200"
+        //                             />
+        //                             <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+        //                         </div>
+        //                     </div>
+
+        //                     <div className="flex flex-col px-6 border-r items-center justify-center text-[12px]">
+        //                         <span className="flex gap-4 items-center">
+        //                             <GrMail color="red"></GrMail>
+        //                             <span className="font-semibold"> gpecommerce@gmail.com</span>
+        //                         </span>
+        //                         <span>Online Support 24/7</span>
+        //                     </div>
+        //                     {current && (
+        //                         <>
+        //                             <div
+        //                                 onClick={() => dispatch(showCart())}
+        //                                 className="cursor-pointer flex px-6 border-r items-center justify-center gap-2 text-[16px]"
+        //                             >
+        //                                 <FaShoppingCart color="red"></FaShoppingCart>
+        //                                 <span>{`${current?.cart?.length || 0} item(s)`}</span>
+        //                             </div>
+        //                             <div
+        //                                 className="cursor-pointer flex px-6 items-center justify-center gap-2 text-[16px] relative"
+        //                                 onClick={() => setIsShowOption((prev) => !prev)}
+        //                                 id="profile"
+        //                             >
+        //                                 <FaUser color="red"></FaUser>
+        //                                 <span>Profile</span>
+        //                                 {isShowOption && (
+        //                                     <div
+        //                                         onClick={(e) => e.stopPropagation()}
+        //                                         className="absolute top-full left-4 flex flex-col bg-white shadow-md py-2 border min-w-[180px]"
+        //                                     >
+        //                                         <Link
+        //                                             className="p-2 w-full hover:bg-gray-100 border-b-2"
+        //                                             to={`/${path.MEMBER}/${path.PERSONAL}`}
+        //                                         >
+        //                                             Personal
+        //                                         </Link>
+        //                                         {+current?.role === 2002 && (
+        //                                             <Link
+        //                                                 className="p-2 w-full hover:bg-gray-100"
+        //                                                 to={`/${path.ADMIN}/${path.DASHBOARD}`}
+        //                                             >
+        //                                                 Admin workspace
+        //                                             </Link>
+        //                                         )}
+        //                                         <span
+        //                                             onClick={() => dispatch(logout())}
+        //                                             className="p-2 w-full hover:bg-gray-100"
+        //                                         >
+        //                                             Logout
+        //                                         </span>
+        //                                     </div>
+        //                                 )}
+        //                             </div>
+        //                         </>
+        //                     )}
+        //                 </div>
+        //             </>
+        //         )}
+        //     </div>
+        // </div>
         <div className="w-full flex items-center justify-center bg-white fixed top-[40px] left-0 right-0 z-40">
             <div className="w-main flex justify-between items-center h-[110px] py-[35px]">
-                <Link to={`/${path.HOME}`}>
-                    <img src={logo} alt="logo" className="w-[234px] object-contain" />
-                </Link>
-                <div className="flex">
-                    <div className="flex flex-col w-[440px]">
-                        <div className="relative">
-                            <InputForm
-                                id="q"
-                                onKeyDown={handleKeyDown}
-                                onClick={handleSearchClick}
-                                register={register}
-                                errors={errors}
-                                fullWidth
-                                placeholder="What product are you looking for? "
-                                style="rounded-2xl focus:ring-2 focus:ring-main focus:outline-none transition-all duration-200"
-                            />
-                            <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col px-6 border-r items-center justify-center text-[12px]">
-                        <span className="flex gap-4 items-center">
-                            <GrMail color="red"></GrMail>
-                            <span className="font-semibold"> gpecommerce@gmail.com</span>
+                {isCheckoutPage || isInvoicePage ? (
+                    <div className="flex items-center gap-4">
+                        <Link to={`/${path.HOME}`}>
+                            <img src={logo} alt="logo" className="w-[234px] object-contain" />
+                        </Link>
+                        <div className="h-[30px] w-[2px] bg-gray-300"></div>
+                        <span className="text-red-600 text-[28px]">
+                            {isCheckoutPage ? t('header.CHECK_OUT') : isInvoicePage ? t('header.PURCHASE_INVOICE') : ''}
                         </span>
-                        <span>Online Support 24/7</span>
                     </div>
-                    {current && (
-                        <>
-                            <div
-                                onClick={() => dispatch(showCart())}
-                                className="cursor-pointer flex px-6 border-r items-center justify-center gap-2 text-[16px]"
-                            >
-                                <FaShoppingCart color="red"></FaShoppingCart>
-                                <span>{`${current?.cart?.length || 0} item(s)`}</span>
+                ) : (
+                    <>
+                        <Link to={`/${path.HOME}`}>
+                            <img src={logo} alt="logo" className="w-[234px] object-contain" />
+                        </Link>
+                        <div className="flex">
+                            <div className="flex flex-col w-[440px]">
+                                <div className="relative">
+                                    <InputForm
+                                        id="q"
+                                        onKeyDown={handleKeyDown}
+                                        onClick={handleSearchClick}
+                                        register={register}
+                                        errors={errors}
+                                        fullWidth
+                                        placeholder={t('header.SEARCH_PLACEHOLDER')}
+                                        style="rounded-2xl focus:ring-2 focus:ring-main focus:outline-none transition-all duration-200"
+                                    />
+                                    <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                                </div>
                             </div>
-                            <div
-                                className="cursor-pointer flex px-6 items-center justify-center gap-2 text-[16px] relative"
-                                onClick={() => setIsShowOption((prev) => !prev)}
-                                id="profile"
-                            >
-                                <FaUser color="red"></FaUser>
-                                <span>Profile</span>
-                                {isShowOption && (
+
+                            <div className="flex flex-col px-6 border-r items-center justify-center text-[12px]">
+                                <span className="flex gap-4 items-center">
+                                    <GrMail color="red" />
+                                    <span className="font-semibold"> gpecommerce@gmail.com</span>
+                                </span>
+                                <span>{t('header.ONLINE_SUPPORT')}</span>
+                            </div>
+
+                            {current && (
+                                <>
                                     <div
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="absolute top-full left-4 flex flex-col bg-white shadow-md py-2 border min-w-[180px]"
+                                        onClick={() => dispatch(showCart())}
+                                        className="cursor-pointer flex px-6 border-r items-center justify-center gap-2 text-[16px]"
                                     >
-                                        <Link
-                                            className="p-2 w-full hover:bg-gray-100 border-b-2"
-                                            to={`/${path.MEMBER}/${path.PERSONAL}`}
-                                        >
-                                            Personal
-                                        </Link>
-                                        {+current?.role === 2002 && (
-                                            <Link
-                                                className="p-2 w-full hover:bg-gray-100"
-                                                to={`/${path.ADMIN}/${path.DASHBOARD}`}
-                                            >
-                                                Admin workspace
-                                            </Link>
-                                        )}
-                                        <span
-                                            onClick={() => dispatch(logout())}
-                                            className="p-2 w-full hover:bg-gray-100"
-                                        >
-                                            Logout
-                                        </span>
+                                        <FaShoppingCart color="red" />
+                                        <span>{`${current?.cart?.length || 0} ${t('header.ITEMS')}`}</span>
                                     </div>
-                                )}
-                            </div>
-                        </>
-                    )}
-                </div>
+                                    <div
+                                        className="cursor-pointer flex px-6 items-center justify-center gap-2 text-[16px] relative"
+                                        onClick={() => setIsShowOption((prev) => !prev)}
+                                        id="profile"
+                                    >
+                                        <FaUser color="red" />
+                                        <span>{t('header.PROFILE')}</span>
+                                        {isShowOption && (
+                                            <div
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="absolute top-full left-4 flex flex-col bg-white shadow-md py-2 border min-w-[180px]"
+                                            >
+                                                <Link
+                                                    className="p-2 w-full hover:bg-gray-100 border-b-2"
+                                                    to={`/${path.MEMBER}/${path.PERSONAL}`}
+                                                >
+                                                    {t('header.PERSONAL')}
+                                                </Link>
+                                                {+current?.role === 2002 && (
+                                                    <Link
+                                                        className="p-2 w-full hover:bg-gray-100"
+                                                        to={`/${path.ADMIN}/${path.DASHBOARD}`}
+                                                    >
+                                                        {t('header.ADMIN_WORKSPACE')}
+                                                    </Link>
+                                                )}
+                                                <span
+                                                    onClick={() => dispatch(logout())}
+                                                    className="p-2 w-full hover:bg-gray-100"
+                                                >
+                                                    {t('header.LOGOUT')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

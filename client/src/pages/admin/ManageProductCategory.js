@@ -92,7 +92,7 @@ const ManageProductCategory = ({ navigate, location }) => {
                     ></UpdateProductCategory>
                 </div>
             )}
-            <h1 className="h-[75px] flex justify-between items-center text-3xl font-bold text-gray-800 border-b-4 border-main px-4">
+            <h1 className="text-4xl font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
                 <span>Manage Product Categories</span>
             </h1>
 
@@ -110,7 +110,7 @@ const ManageProductCategory = ({ navigate, location }) => {
             </div>
 
             <table className="table-auto mb-6 text-left w-full bg-white shadow-md rounded-lg overflow-hidden">
-                <thead className="font-bold bg-main text-sm text-white text-center">
+                <thead className="font-bold uppercase bg-main text-sm text-white text-center">
                     <tr>
                         <th className="px-4 py-3">#</th>
                         <th className="px-4 py-3 text-start">Image</th>

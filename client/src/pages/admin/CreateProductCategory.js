@@ -71,7 +71,7 @@ const CreateProductCategory = () => {
     return (
         <div className="w-full max-w-screen-xl mx-auto p-8 bg-gradient-to-r from-red-50 via-red-100 to-red-200 rounded-lg shadow-xl">
             <div className="mb-8">
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
+                <h1 className="text-4xl font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
                     Create New Product Category
                 </h1>
             </div>

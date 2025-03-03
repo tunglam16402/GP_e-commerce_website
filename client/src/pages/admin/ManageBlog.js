@@ -103,7 +103,7 @@ const ManageBlog = ({ navigate, location }) => {
             </div>
 
             <table className="table-auto mb-6 text-left w-full bg-white shadow-md rounded-lg overflow-hidden">
-                <thead className="font-bold bg-main text-sm text-white text-center">
+                <thead className="font-bold uppercase bg-main text-sm text-white text-center">
                     <tr>
                         <th className="px-4 py-3">#</th>
                         <th className="px-4 py-3">Title</th>

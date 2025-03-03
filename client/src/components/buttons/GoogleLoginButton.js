@@ -15,32 +15,32 @@ const GoogleLoginButton = () => {
                     console.log('Google Response:', response);
                     const result = await apiGoogleLogin({ token: response.credential });
 
-                    console.log('Đăng nhập thành công:', result);
+                    console.log('Login successful:', result);
 
                     if (result.success) {
-                        // Lưu vào Redux Store
+                        // Save to Redux Store
                         dispatch(login({ isLoggedIn: true, token: result.accessToken }));
 
-                        // Gọi API lấy thông tin user
+                        // Call API to get user information
                         dispatch(getCurrent());
 
-                        // Lưu vào localStorage
+                        // Save to localStorage
                         localStorage.setItem('accessToken', result.accessToken);
                         localStorage.setItem('userData', JSON.stringify(result.userData));
 
-                        // Điều hướng sau khi đăng nhập
-                        window.location.href = '/dashboard';
+                        // Redirect after login
+                        window.location.href = '/';
                     } else {
-                        throw new Error(result.message || 'Lỗi đăng nhập Google');
+                        throw new Error(result.message || 'Google login error');
                     }
                 } catch (error) {
-                    console.error('Lỗi đăng nhập:', error);
-                    alert(error.message || 'Có lỗi xảy ra khi đăng nhập!');
+                    console.error('Login error:', error);
+                    alert(error.message || 'An error occurred while logging in!');
                 }
             }}
             onError={() => {
-                console.log('Đăng nhập thất bại');
-                alert('Đăng nhập Google thất bại. Vui lòng thử lại!');
+                console.log('Login failed');
+                alert('Google login failed. Please try again!');
             }}
         />
     );

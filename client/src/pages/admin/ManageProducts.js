@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { CustomizeVariants, InputForm, Pagination } from 'components';
+import { CustomizeVariants, ExportExcelButton, InputForm, Pagination } from 'components';
 import { useForm } from 'react-hook-form';
-import { apiGetProducts, apiDeleteProduct } from 'apis/product';
+import { apiGetProducts, apiDeleteProduct, apiBanProduct } from 'apis/product';
 import moment from 'moment';
 import { useSearchParams, createSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import useDebounce from 'hooks/useDebounce';
 import UpdateProduct from './UpdateProduct';
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
-import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import { FaEdit, FaTrashAlt, FaBan } from 'react-icons/fa';
 import { IoEyeSharp } from 'react-icons/io5';
 import { MdAddToPhotos } from 'react-icons/md';
 import ViewVariants from './ViewVariants';
@@ -23,6 +23,20 @@ const ManageProducts = () => {
         watch,
     } = useForm();
 
+    const productColumns = [
+        { label: 'ID', key: '_id' },
+        { label: 'Title', key: 'title' },
+        { label: 'Brand', key: 'brand' },
+        { label: 'Category', key: 'category' },
+        { label: 'Color', key: 'color' },
+        { label: 'Price', key: 'price' },
+        { label: 'Discount (%)', key: 'discount' },
+        { label: 'Quantity', key: 'quantity' },
+        { label: 'Sold', key: 'sold' },
+        { label: 'Ratings', key: 'totalRatings' },
+        { label: 'Created At', key: 'createdAt' },
+    ];
+
     const navigate = useNavigate();
     const location = useLocation();
     const [products, setProducts] = useState(null);
@@ -31,10 +45,11 @@ const ManageProducts = () => {
     const [editProduct, setEditProduct] = useState(null);
     const [update, setUpdate] = useState(false);
     const [customizeVariant, setCustomizeVariant] = useState(null);
-    const [viewVariantsProduct, setViewVariantsProduct] = useState(null); 
+    const [viewVariantsProduct, setViewVariantsProduct] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const handleViewVariants = (product) => {
-        setViewVariantsProduct(product); 
+        setViewVariantsProduct(product);
     };
 
     const render = useCallback(() => {
@@ -89,6 +104,30 @@ const ManageProducts = () => {
         });
     };
 
+    const handleBanProduct = async (pid) => {
+        Swal.fire({
+            title: 'Ban/Unban product',
+            text: 'Are you sure you want to toggle the ban status of this product?',
+            icon: 'warning',
+            showCancelButton: true,
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const response = await apiBanProduct(pid);
+                if (response.success) {
+                    toast.success(response.message);
+
+                    setProducts((prev) =>
+                        prev.map((product) =>
+                            product._id === pid ? { ...product, isBanned: !product.isBanned } : product,
+                        ),
+                    );
+                } else {
+                    toast.error(response.message);
+                }
+            }
+        });
+    };
+
     return (
         // <div className="w-full flex flex-col p-4 relative">
         <div className="w-full flex flex-col p-6 relative bg-gray-50 rounded-lg shadow-lg">
@@ -120,11 +159,11 @@ const ManageProducts = () => {
                     />
                 </div>
             )}
-            <h1 className="h-[75px] flex justify-between items-center text-3xl font-bold text-gray-800 border-b-4 border-main px-4">
+            <h1 className="text-4xl font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
                 <span>Manage Products</span>
             </h1>
 
-            <div className="flex justify-end items-center py-4">
+            <div className="flex justify-end items-center gap-4 py-4">
                 <form className="w-[40%] max-w-lg">
                     <InputForm
                         id="q"
@@ -135,10 +174,11 @@ const ManageProducts = () => {
                         className="border border-gray-300 p-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                 </form>
+                <ExportExcelButton data={products || []} fileName="Products" columns={productColumns} />
             </div>
 
             <table className="table-auto mb-6 text-left w-full bg-white shadow-md rounded-lg overflow-hidden">
-                <thead className="font-bold bg-main text-sm text-white text-center">
+                <thead className="font-bold uppercase bg-main text-sm text-white text-center">
                     <tr>
                         <th className="px-4 py-3">#</th>
                         <th className="px-4 py-3">Thumb</th>
@@ -160,7 +200,9 @@ const ManageProducts = () => {
                     {products?.map((element, index) => (
                         <tr
                             key={element._id}
-                            className="border-t border-b border-gray-200 text-center hover:bg-gray-50 transition-colors"
+                            className={`border-t border-b border-gray-200 text-center transition-colors ${
+                                element.isBanned ? 'bg-gray-300 opacity-70' : 'hover:bg-gray-50'
+                            }`}
                         >
                             <td>
                                 {(+params.get('page') > 1 ? +params.get('page') - 1 : 0) * process.env.REACT_APP_LIMIT +
@@ -171,8 +213,9 @@ const ManageProducts = () => {
                                 <img
                                     src={element.thumb}
                                     alt="thumb"
-                                    className="w-16 h-16 object-cover rounded-md"
-                                ></img>
+                                    className="w-16 h-16 object-cover rounded-md cursor-pointer"
+                                    onClick={() => setSelectedImage(element.thumb)}
+                                />
                             </td>
                             <td>{element.title}</td>
                             <td>{element.brand}</td>
@@ -185,39 +228,65 @@ const ManageProducts = () => {
                             <td>{element.totalRatings}</td>
                             <td>{element?.variants.length || 0}</td>
                             <td>{moment(element.createdAt).format('DD/MM/YYYY')}</td>
-                            <td className="flex flex-col items-center justify-center space-y-2">
+                            <td className="flex flex-col items-center justify-center my-4 space-y-2">
                                 <span
                                     onClick={() => setEditProduct(element)}
-                                    className="text-indigo-600 hover:text-indigo-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
+                                    className="bg-indigo-600 text-white hover:bg-indigo-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
                                     title="Edit this product"
                                 >
                                     <FaEdit />
                                 </span>
                                 <span
                                     onClick={() => handleDeleteProduct(element._id)}
-                                    className="text-red-600 hover:text-red-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
+                                    className="bg-red-600 text-white hover:bg-red-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
                                     title="Delete this product"
                                 >
                                     <FaTrashAlt />
                                 </span>
                                 <span
                                     onClick={() => setCustomizeVariant(element)}
-                                    className="text-green-600 hover:text-green-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
+                                    className="bg-green-600 text-white hover:bg-green-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
                                     title="Add new variant to this product"
                                 >
                                     <MdAddToPhotos />
                                 </span>
                                 <span
-                                    onClick={() => handleViewVariants(element)} // Mở modal để xem variant
-                                    className="text-blue-600 hover:text-blue-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
-                                    title="See all variants "
+                                    onClick={() => handleViewVariants(element)}
+                                    className="bg-blue-600 text-white hover:bg-blue-800 cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors"
+                                    title="See all variants"
                                 >
                                     <IoEyeSharp />
+                                </span>
+                                <span
+                                    onClick={() => handleBanProduct(element._id)}
+                                    className={`cursor-pointer px-2 py-1 inline-block rounded-lg transition-colors ${
+                                        element.isBanned
+                                            ? 'bg-green-600 text-white hover:bg-green-800'
+                                            : 'bg-yellow-600 text-white hover:bg-yellow-800'
+                                    }`}
+                                    title={element.isBanned ? 'Unban this product' : 'Ban this product'}
+                                >
+                                    {element.isBanned ? <IoEyeSharp /> : <FaBan />}
                                 </span>
                             </td>
                         </tr>
                     ))}
                 </tbody>
+
+                {/* Overlay hiển thị ảnh phóng to */}
+                {selectedImage && (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
+                        onClick={() => setSelectedImage(null)}
+                    >
+                        <img
+                            src={selectedImage}
+                            alt="Preview"
+                            className="max-w-[90%] max-h-[90%] rounded-md shadow-lg"
+                            onClick={(e) => e.stopPropagation()} // Ngăn chặn đóng modal khi click vào ảnh
+                        />
+                    </div>
+                )}
             </table>
 
             <div className="w-full flex justify-end mt-4">

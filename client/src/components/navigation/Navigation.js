@@ -1,11 +1,41 @@
+// import React, { memo } from 'react';
+// import { navigation } from 'utils/constant';
+// import { NavLink } from 'react-router-dom';
+// import withBaseComponent from 'hocs/withBaseComponent';
+
+// const notActivedStyle = '';
+// const activedStyle = '';
+
+// const Navigation = ({ location }) => {
+//     return (
+//         <div className="w-main h-12 py-2 border-y mb-6 flex items-center bg-white">
+//             {navigation.map((element) => (
+//                 <NavLink
+//                     to={element.path}
+//                     key={element.id}
+//                     className={({ isActive }) =>
+//                         `px-4 py-2 transition-colors duration-200 font-semibold flex items-center gap-2 text-[18px] ${
+//                             isActive ? 'text-main border-b-2 border-main' : 'text-gray-600 hover:text-main'
+//                         }`
+//                     }
+//                 >
+//                     <span>{element.icon}</span>
+//                     <span>{element.value}</span>
+//                 </NavLink>
+//             ))}
+//         </div>
+//     );
+// };
+
+// export default withBaseComponent(Navigation);
+
+// Navigation.js
 import React, { memo } from 'react';
 import { navigation } from 'utils/constant';
 import { NavLink } from 'react-router-dom';
+import withBaseComponent from 'hocs/withBaseComponent';
 
-const notActivedStyle = '';
-const activedStyle = '';
-
-const Navigation = () => {
+const Navigation = ({ t }) => {
     return (
         <div className="w-main h-12 py-2 border-y mb-6 flex items-center bg-white">
             {navigation.map((element) => (
@@ -13,17 +43,17 @@ const Navigation = () => {
                     to={element.path}
                     key={element.id}
                     className={({ isActive }) =>
-                        `px-4 py-2 transition-colors duration-200 font-semibold flex items-center gap-2 text-[18px] ${
+                        `px-4 py-2 transition-colors duration-200 uppercase font-semibold flex items-center gap-2 text-[18px] ${
                             isActive ? 'text-main border-b-2 border-main' : 'text-gray-600 hover:text-main'
                         }`
                     }
                 >
                     <span>{element.icon}</span>
-                    <span> {element.value}</span>
+                    <span>{t(`navigation.${element.value}`)}</span> 
                 </NavLink>
             ))}
         </div>
     );
 };
 
-export default Navigation;
+export default withBaseComponent(memo(Navigation));

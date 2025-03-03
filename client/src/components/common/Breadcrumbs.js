@@ -5,10 +5,11 @@ import icons from '../../utils/icons';
 
 const { IoIosArrowForward } = icons;
 
-const Breadcrumbs = ({ title, category, blog, blogTitle }) => {
+const Breadcrumbs = ({ title, category, blog, blogTitle, contact }) => {
     const routes = [
         { path: '/:category', breadcrumb: category },
         { path: '/:blog', breadcrumb: blog },
+        { path: '/:contact', breadcrumb: contact },
         {
             path: '/blog/:bid/:title',
             breadcrumb: ({ match }) => decodeURIComponent(match.params.title),

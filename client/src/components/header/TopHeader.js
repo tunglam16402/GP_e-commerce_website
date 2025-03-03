@@ -8,10 +8,12 @@ import { logout, clearMessage } from 'store/users/userSlice';
 import Swal from 'sweetalert2';
 import { RiPhoneFill } from 'react-icons/ri';
 import withBaseComponent from 'hocs/withBaseComponent';
+import { useTranslation } from 'react-i18next';
 
 const { IoLogOutSharp } = icons;
 
 const TopHeader = ({ dispatch, navigate, location }) => {
+    const { i18n } = useTranslation();
     const isLoginPage = location.pathname === `/${path.AUTH}`;
     const { isLoggedIn, current, message } = useSelector((state) => state.user);
 
@@ -39,6 +41,11 @@ const TopHeader = ({ dispatch, navigate, location }) => {
         dispatch(logout());
         navigate(`/${path.AUTH}`);
     };
+
+    const handleChangeLanguage = (lang) => {
+        i18n.changeLanguage(lang);
+        localStorage.setItem('i18nextLng', lang); // Lưu ngôn ngữ vào localStorage
+    };
     return (
         <div className=" w-full bg-main flex items-center justify-center">
             <div className="w-main h-[40px] flex items-center justify-between text-sm text-white ">
@@ -52,8 +59,19 @@ const TopHeader = ({ dispatch, navigate, location }) => {
                     </a>
                     <span className="">Mon-Sat 9:00AM - 8:00PM</span>
                 </span>
+
                 {isLoggedIn && current ? (
                     <div className="flex gap-4 text-sm items-center">
+                        <div className="flex items-center gap-4">
+                            <select
+                                className=" py-1 border-r text-white bg-main rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={i18n.language}
+                                onChange={(e) => handleChangeLanguage(e.target.value)}
+                            >
+                                <option value="en">English</option>
+                                <option value="vi">Tiếng Việt</option>
+                            </select>
+                        </div>
                         {current ? (
                             <span>{`Welcome, ${current.lastname} ${current.firstname}`}</span>
                         ) : (

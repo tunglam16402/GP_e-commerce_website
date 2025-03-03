@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 
@@ -29,6 +29,9 @@ const Authentication = () => {
     const [token, setToken] = useState('');
     const [isVerifyEmail, setIsVerifyEmail] = useState(false);
     const [searchParams] = useSearchParams();
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const { current } = useSelector((state) => state.user);
 
     const resetPayload = () => {
         setPayload({
@@ -56,6 +59,12 @@ const Authentication = () => {
     //submit
     const handleSubmit = useCallback(async () => {
         const { firstname, lastname, mobile, ...data } = payload;
+        // if (isRegister && payload.password !== confirmPassword) {
+        //     setPasswordError('Passwords do not match!');
+        //     return;
+        // } else {
+        //     setPasswordError('');
+        // }
 
         const invalids = isRegister ? validate(payload, setInValidFields) : validate(data, setInValidFields);
         if (invalids === 0) {
@@ -70,17 +79,41 @@ const Authentication = () => {
                 }
             } else {
                 const loginResponse = await apiLogin(data);
+                // if (loginResponse.success) {
+                //     dispatch(
+                //         login({ isLoggedIn: true, token: loginResponse.accessToken, userData: loginResponse.userData }),
+                //     );
+                //     searchParams.get('redirect') ? navigate(searchParams.get('redirect')) : navigate(`/${path.HOME}`);
+                // } else {
+                //     Swal.fire('Oops!', loginResponse.message, 'error');
+                // }
                 if (loginResponse.success) {
                     dispatch(
                         login({ isLoggedIn: true, token: loginResponse.accessToken, userData: loginResponse.userData }),
                     );
-                    searchParams.get('redirect') ? navigate(searchParams.get('redirect')) : navigate(`/${path.HOME}`);
+                    console.log('Login successful, waiting for current update...');
                 } else {
                     Swal.fire('Oops!', loginResponse.message, 'error');
                 }
             }
         }
     }, [payload, isRegister]);
+
+    useEffect(() => {
+        if (current?.role) {
+            console.log('Auto navigating:', current.role);
+            const redirectPath = searchParams.get('redirect');
+            if (redirectPath) {
+                navigate(redirectPath);
+            } else {
+                if (current.role === 2006) {
+                    navigate(`/${path.HOME}`);
+                } else {
+                    navigate(`/${path.ADMIN}/${path.DASHBOARD}`);
+                }
+            }
+        }
+    }, [current, navigate]);
 
     const handleFinalRegister = async () => {
         const response = await apiFinalRegister(token);
@@ -104,13 +137,14 @@ const Authentication = () => {
                         <h4 className="text-[26px] mb-8 flex justify-center">Verify your email</h4>
                         <p>
                             We have sent a code to email <strong>{email}</strong>. Please check and enter the
-                            verification code in the box below to complete your account registration.
+                            verification code in the box below to complete your account registration. Code will expire
+                            in 5 minutes
                         </p>
                         <input
                             type="text"
                             value={token}
                             onChange={(e) => setToken(e.target.value)}
-                            className="p-2 mt-4 mb-4 border rounded-md outline-main"
+                            className="p-2 mt-4 mb-4 border border-gray-700 rounded-md outline-main"
                         ></input>
                         <Button handleOnclick={handleFinalRegister}>Submit</Button>
                     </div>
@@ -125,19 +159,17 @@ const Authentication = () => {
                     <div className="mt-7 bg-white  rounded-xl shadow-lg  p-6 w-[800px] animate-slide-right">
                         <div className="p-4 sm:p-7">
                             <div className="text-center">
-                                <h1 className="block text-[28px] mb-8 font-bold text-gray-800 dark:text-white">
-                                    Forgot password?
-                                </h1>
-                                <p className="mt-2 text-[16px] text-gray-600 dark:text-gray-400">
+                                <h1 className="block text-[28px] mb-8 font-bold text-gray-800 ">Forgot password?</h1>
+                                <p className="mt-2 text-[16px] text-gray-700 dark:text-gray-600">
                                     Please enter the email address you registered with us to create a new password. We
                                     will send an email to the email address provided and require verification before you
                                     can create a new password.
                                 </p>
-                                <p className="mt-2 text-[16px] text-gray-600 dark:text-gray-400">
+                                <p className="mt-2 text-[16px] gap-2 text-gray-700 dark:text-gray-600">
                                     Remember your password?
                                     <span
                                         onClick={() => setIsForgotPassword(false)}
-                                        className="text-blue-600 decoration-2 hover:underline font-medium cursor-pointer"
+                                        className="text-main decoration-2 hover:underline font-medium cursor-pointer"
                                     >
                                         Login here
                                     </span>
@@ -184,12 +216,12 @@ const Authentication = () => {
             )}
             <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    <h2 className="mt-[100px] text-center text-3xl font-semibold text-gray-900">
                         {isRegister ? 'Register your account' : 'Login to your account'}
                     </h2>
                     {!isRegister && (
                         <p className="mt-2 text-center text-sm text-gray-600 max-w">
-                            <span className="mr-2">Or</span>
+                            <span className="mr-2">Don't have an account?</span>
                             <span
                                 className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
                                 onClick={() => setIsRegister(true)}
@@ -200,7 +232,7 @@ const Authentication = () => {
                     )}
                     {isRegister && (
                         <p className="mt-2 text-center text-sm text-gray-600 max-w">
-                            <span className="mr-2">Or</span>
+                            <span className="mr-2">Already have an account?</span>
                             <span
                                 className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
                                 onClick={() => setIsRegister(false)}
@@ -263,6 +295,18 @@ const Authentication = () => {
                                 inValidFields={inValidFields}
                                 setInvalidFields={setInValidFields}
                             ></InputField>
+                            {isRegister && (
+                                <InputField
+                                    value={confirmPassword}
+                                    setValue={({ password }) => setConfirmPassword(password)}
+                                    nameKey="confirmPassword"
+                                    type="password"
+                                    placeholder="Confirm Password"
+                                    inValidFields={passwordError ? ['confirmPassword'] : []}
+                                    setInvalidFields={() => setPasswordError('')}
+                                />
+                            )}
+                            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
 
                             {!isRegister && (
                                 <div className="flex items-center justify-between">
@@ -303,7 +347,7 @@ const Authentication = () => {
                                     </div>
                                 </div>
 
-                                <div className='mt-6 flex items-center justify-center px-4'>
+                                <div className="mt-6 flex items-center justify-center px-4">
                                     <GoogleLoginButton />
                                 </div>
                             </div>

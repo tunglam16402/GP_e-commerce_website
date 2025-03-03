@@ -43,6 +43,8 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
     const [variant, setVariant] = useState(null);
     const [pid, setPid] = useState(null);
     const [category, setCategory] = useState(null);
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const [currentProduct, setCurrentProduct] = useState({
         title: '',
         thumb: '',
@@ -160,38 +162,6 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
         e.stopPropagation();
         setCurrentImage(element);
     };
-
-    // const handleAddToCart = async () => {
-    //     if (!current) {
-    //         Swal.fire({
-    //             title: 'Almost...',
-    //             text: 'Your must login first to buy this',
-    //             cancelButtonText: 'Not now',
-    //             confirmButtonText: 'Go login',
-    //             icon: 'info',
-    //             showCancelButton: true,
-    //         }).then(async (response) => {
-    //             if (response.isConfirmed) {
-    //                 navigate({
-    //                     pathname: `/${path.AUTH}`,
-    //                     search: createSearchParams({ redirect: location.pathname }).toString(),
-    //                 });
-    //             }
-    //         });
-    //     }
-    //     const response = await apiUpdateCart({
-    //         pid,
-    //         color: currentProduct.color || product?.color,
-    //         quantity,
-    //         price: currentProduct.price || product.price,
-    //         thumb: currentProduct.thumb || product.thumb,
-    //         title: currentProduct.title || product.title,
-    //     });
-    //     if (response.success) {
-    //         toast.success(response.message);
-    //         dispatch(getCurrent());
-    //     } else toast.error(response.message);
-    // };
     const handleAddToCart = async () => {
         if (!current) {
             Swal.fire({
@@ -391,8 +361,16 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                             ></SelectQuantity>
                             <span className="text-sm text-main ml-8">{`Products available: ${product?.quantity}`}</span>
                         </div>
-                        <Button handleOnclick={handleAddToCart} fullWidth>
+                        {/* <Button handleOnclick={handleAddToCart} fullWidth>
                             Add to cart
+                        </Button> */}
+                        <Button
+                            handleOnclick={handleAddToCart}
+                            fullWidth
+                            disabled={product?.quantity === 0} // Điều kiện vô hiệu hóa
+                            className={clsx({ 'bg-gray-500': product?.quantity === 0 })} // Tùy chỉnh màu nếu vô hiệu hóa
+                        >
+                            {product?.quantity === 0 ? 'Out of Stock' : 'Add to cart'}
                         </Button>
                     </div>
                 </div>
@@ -415,17 +393,34 @@ const DetailProduct = ({ isQuickView, data, dispatch, navigate, location }) => {
                     __html: product?.detailDescription || '<p>No content available.</p>',
                 }}
             /> */}
-            <div className="w-main m-auto mt-8 bg-white px-4 border">
-                <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
-                    Detailed Description
-                </h3>
-                <div
-                    className="text-gray-800 text-lg leading-relaxed p-4"
-                    dangerouslySetInnerHTML={{
-                        __html: product?.detailDescription || '<p>No content available.</p>',
-                    }}
-                />
-            </div>
+            {!isQuickView && (
+                <div className="w-main m-auto mt-8 bg-white px-4 border relative">
+                    <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
+                        Detailed Description
+                    </h3>
+                    <div
+                        className={`text-gray-800 text-lg leading-relaxed p-4 relative transition-all duration-300 overflow-hidden ${
+                            isExpanded ? 'max-h-full' : 'max-h-[500px]'
+                        }`}
+                        dangerouslySetInnerHTML={{
+                            __html: product?.detailDescription || '<p>No content available.</p>',
+                        }}
+                    />
+                    {!isExpanded && (
+                        <div className="absolute bottom-14 left-0 w-full h-20 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                    )}
+                    {/* Nút See More */}
+                    <div className="text-center mt-4 mb-4">
+                        <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="px-5 py-2 bg-main text-white font-medium rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
+                        >
+                            {isExpanded ? 'See Less' : 'See More'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {!isQuickView && (
                 <div className="w-main m-auto mt-8">
                     <ProductInformation

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {} from 'react-use';
 import withBaseComponent from 'hocs/withBaseComponent';
 import moment from 'moment';
-import { apiUpdateOrderStatus } from 'apis';
+import { apiSendMailOrderSuccess, apiUpdateOrderStatus } from 'apis';
 import { toast } from 'react-toastify';
 import { formatMoney } from 'utils/helper';
 
@@ -22,11 +22,39 @@ const DetailOrder = ({ seeDetail, setSeeDetail, updateOrderStatus }) => {
                     toast.success('Status has been updated');
                     setSeeDetail({ ...seeDetail, status: newStatus });
                     updateOrderStatus(seeDetail._id, newStatus);
+
+                    // Gửi email nếu trạng thái là "Succeed"
+                    if (newStatus === 'Succeed') {
+                        try {
+                            const emailRes = await apiSendMailOrderSuccess({
+                                email: seeDetail.orderBy.email,
+                                orderId: seeDetail._id,
+                                fullname: `${seeDetail.orderBy.lastname} ${seeDetail.orderBy.firstname}`,
+                                orderDate: seeDetail.createdAt,
+                                products: seeDetail.products,
+                                totalPrice: seeDetail.products.reduce(
+                                    (acc, item) => acc + item.quantity * item.price,
+                                    0,
+                                ),
+                                address: seeDetail.orderBy.address,
+                            });
+
+                            if (emailRes.data.success) {
+                                toast.success('Order confirmation email sent!');
+                            } else {
+                                toast.warning('Failed to send confirmation email');
+                            }
+                        } catch (emailError) {
+                            console.error('Email sending error:', emailError);
+                            toast.error('Error sending email');
+                        }
+                    }
                 } else {
                     toast.warning('Status cannot be updated');
                 }
             } catch (error) {
                 console.error('Error:', error);
+                toast.error('An error occurred while updating the status');
             }
         }
     };
@@ -43,14 +71,12 @@ const DetailOrder = ({ seeDetail, setSeeDetail, updateOrderStatus }) => {
                     </span>
                 </div>
 
-                {/* Thông tin đơn hàng */}
                 <div className="grid grid-cols-1 pt-[75px] lg:grid-cols-2 gap-12 text-gray-700 mb-6">
                     <div className="space-y-6">
                         <p className="text-xl ">
                             <strong>Order ID:</strong> {seeDetail._id}
                         </p>
 
-                        {/* Thêm thông tin địa chỉ, email, mobile */}
                         <p className="text-xl">
                             <strong>Orderer:</strong> {seeDetail.orderBy?.lastname} {seeDetail.orderBy?.firstname}
                         </p>
@@ -95,11 +121,9 @@ const DetailOrder = ({ seeDetail, setSeeDetail, updateOrderStatus }) => {
                     </div>
                 </div>
 
-                {/* Danh sách sản phẩm */}
                 <div className="mt-8">
                     <h3 className="text-3xl font-semibold text-gray-900 mb-6">Products</h3>
 
-                    {/* Bảng sản phẩm */}
                     <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-lg border border-gray-200">
                         <table className="min-w-full table-auto">
                             <thead className="bg-gray-100 text-left text-xl text-gray-600">
@@ -134,7 +158,6 @@ const DetailOrder = ({ seeDetail, setSeeDetail, updateOrderStatus }) => {
                         </table>
                     </div>
 
-                    {/* Tính tổng */}
                     <div className="mt-8 flex justify-between text-2xl font-semibold text-gray-800 border-t pt-6">
                         <p>Total Quantity:</p>
                         <p>{seeDetail.products.reduce((acc, item) => acc + item.quantity, 0)} items</p>

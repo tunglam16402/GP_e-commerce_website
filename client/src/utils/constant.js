@@ -159,12 +159,12 @@ export const sorts = [
     },
     {
         id: 6,
-        value: '-createAt',
+        value: '-createdAt',
         text: 'Date, new to old',
     },
     {
         id: 7,
-        value: 'createAt',
+        value: 'createdAt',
         text: 'Date, old to new',
     },
 ];
@@ -212,13 +212,6 @@ export const adminSidebar = [
     },
     {
         id: 4,
-        type: 'SINGLE',
-        text: 'Manage Orders',
-        path: `/${path.ADMIN}/${path.MANAGE_ORDER}`,
-        icon: <RiBillLine size={20} />,
-    },
-    {
-        id: 5,
         type: 'PARENT',
         text: 'Manage product Category',
         icon: <MdCategory size={20} />,
@@ -236,25 +229,7 @@ export const adminSidebar = [
         ],
     },
     {
-        id: 6,
-        type: 'PARENT',
-        text: 'Manage Brand',
-        icon: <SiBrandfolder size={20} />,
-        submenu: [
-            {
-                text: 'Create new Brand',
-                path: `/${path.ADMIN}/${path.CREATE_BRAND}`,
-                icon: <IoCreate size={20} />,
-            },
-            {
-                text: 'Brand List',
-                path: `/${path.ADMIN}/${path.MANAGE_BRAND}`,
-                icon: <SiBrandfolder size={20} />,
-            },
-        ],
-    },
-    {
-        id: 7,
+        id: 5,
         type: 'PARENT',
         text: 'Manage Blog',
         icon: <FaNewspaper size={20} />,
@@ -272,22 +247,38 @@ export const adminSidebar = [
         ],
     },
     {
+        id: 6,
+        type: 'SINGLE',
+        text: 'Manage Orders',
+        path: `/${path.ADMIN}/${path.MANAGE_ORDER}`,
+        icon: <RiBillLine size={20} />,
+    },
+
+    // {
+    //     id: 6,
+    //     type: 'PARENT',
+    //     text: 'Manage Brand',
+    //     icon: <SiBrandfolder size={20} />,
+    //     submenu: [
+    //         {
+    //             text: 'Create new Brand',
+    //             path: `/${path.ADMIN}/${path.CREATE_BRAND}`,
+    //             icon: <IoCreate size={20} />,
+    //         },
+    //         {
+    //             text: 'Brand List',
+    //             path: `/${path.ADMIN}/${path.MANAGE_BRAND}`,
+    //             icon: <SiBrandfolder size={20} />,
+    //         },
+    //     ],
+    // },
+
+    {
         id: 8,
-        type: 'PARENT',
-        text: 'Manage Banner',
-        icon: <PiFlagBannerFill size={20} />,
-        submenu: [
-            {
-                text: 'Create new Banner',
-                path: `/${path.ADMIN}/${path.CREATE_PRODUCTS}`,
-                icon: <IoCreate size={20} />,
-            },
-            {
-                text: 'Banner List',
-                path: `/${path.ADMIN}/${path.MANAGE_PRODUCTS}`,
-                icon: <PiFlagBannerFill size={20} />,
-            },
-        ],
+        type: 'SINGLE',
+        text: 'Manage Stock',
+        path: `/${path.ADMIN}/${path.MANAGE_STOCK}`,
+        icon: <RiBillLine size={20} />,
     },
 ];
 
@@ -324,8 +315,8 @@ export const memberSidebar = [
     {
         id: 2,
         type: 'SINGLE',
-        text: 'My Cart',
-        path: `/${path.MEMBER}/${path.MY_CART}`,
+        text: 'Viewed Products',
+        path: `/${path.MEMBER}/${path.HISTORY_VIEW}`,
         icon: <FaShoppingCart size={20} />,
     },
     {
@@ -335,7 +326,6 @@ export const memberSidebar = [
         path: `/${path.MEMBER}/${path.WISHLIST}`,
         icon: <MdFavorite size={20} />,
     },
-
     {
         id: 4,
         type: 'SINGLE',
@@ -345,6 +335,13 @@ export const memberSidebar = [
     },
     {
         id: 5,
+        type: 'SINGLE',
+        text: 'Change Password',
+        path: `/${path.MEMBER}/${path.CHANGE_PASSWORD}`,
+        icon: <FaHistory size={20} />,
+    },
+    {
+        id: 6,
         type: 'SINGLE',
         text: 'Go to Homepage',
         path: `/`,

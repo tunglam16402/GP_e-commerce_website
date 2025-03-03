@@ -1,0 +1,40 @@
+{
+    "navigation": {
+        "HOME": "Trang chủ",
+        "PRODUCTS": "Sản phẩm",
+        "BLOGS": "Bài viết",
+        "OUR SERVICES": "Dịch vụ",
+        "FAQs": "Câu hỏi thường gặp",
+        "CONTACT": "Liên hệ"
+    },
+    "header": {
+        "CHECK_OUT": "Thanh toán",
+        "PURCHASE_INVOICE": "Hóa đơn mua hàng",
+        "SEARCH_PLACEHOLDER": "Bạn đang tìm kiếm sản phẩm nào?",
+        "ONLINE_SUPPORT": "Hỗ trợ trực tuyến 24/7",
+        "ITEMS": "sản phẩm",
+        "PROFILE": "Hồ sơ",
+        "PERSONAL": "Trang cá nhân",
+        "ADMIN_WORKSPACE": "Trang quản trị",
+        "LOGOUT": "Đăng xuất"
+    },
+    "sidebar": {
+        "ALL_COLLECTIONS": "Tất cả thể loại",
+        "Smartphone": "Điện thoại",
+        "Tablet": "Máy tính bảng",
+        "Laptop": "Laptop",
+        "Accessories": "Phụ kiện",
+        "Smartwatch": "Đồng hồ thông minh",
+        "Printer": "Máy in",
+        "Speaker": "Loa",
+        "Camera": "Máy ảnh",
+        "Headphones": "Tai nghe"
+    },
+    "deal_daily": {
+        "DEAL_DAILY": "Deal Hàng Ngày",
+        "HOURS": "Giờ",
+        "MINUTES": "Phút",
+        "SECONDS": "Giây",
+        "OPTIONS": "Tùy chọn"
+    }
+}

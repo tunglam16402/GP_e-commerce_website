@@ -1,5 +1,5 @@
 import { apiGetOrders } from 'apis';
-import { CustomSelect, InputForm, Pagination } from 'components';
+import { CustomSelect, ExportExcelButton, InputForm, Pagination } from 'components';
 import withBaseComponent from 'hocs/withBaseComponent';
 import useDebounce from 'hooks/useDebounce';
 import moment from 'moment';
@@ -22,6 +22,23 @@ const ManageOrders = ({ dispatch, navigate, location }) => {
         setValue,
     } = useForm();
 
+    const orderColumns = [
+        { label: 'Order ID', key: '_id' },
+        {
+            label: 'Ordered by',
+            key: 'orderBy',
+            transform: (order) =>
+                order?.orderBy ? `${order.orderBy.lastname || ''} ${order.orderBy.firstname || ''}`.trim() : '',
+        },
+        { label: 'Order date', key: 'createdAt', transform: (date) => moment(date).format('HH:mm:ss DD/MM/YYYY') },
+        { label: 'Status', key: 'status' },
+        {
+            label: 'Update date',
+            key: 'updatedAt',
+            transform: (date) => moment(date || new Date()).format('HH:mm:ss DD/MM/YYYY'),
+        },
+    ];
+
     // const q = watch('q');
 
     const queriesDebounce = useDebounce(watch('q'), 800);
@@ -42,9 +59,19 @@ const ManageOrders = ({ dispatch, navigate, location }) => {
     const status = watch('status');
 
     const fetchOrders = async (params) => {
-        const response = await apiGetOrders({ ...params, limit: process.env.REACT_APP_LIMIT });
+        const response = await apiGetOrders({ ...params, sort: '-createdAt', limit: process.env.REACT_APP_LIMIT });
+        // if (response.success) {
+        //     setOrders(response.orders);
+        //     setCounts(response.counts);
+        // }
         if (response.success) {
-            setOrders(response.orders);
+            const sortedOrders = response.orders.sort((a, b) => {
+                // Ưu tiên đơn hàng "Processing"
+                if (a.status === 'Processing' && b.status !== 'Processing') return -1;
+                if (a.status !== 'Processing' && b.status === 'Processing') return 1;
+            });
+
+            setOrders(sortedOrders);
             setCounts(response.counts);
         }
     };
@@ -86,7 +113,7 @@ const ManageOrders = ({ dispatch, navigate, location }) => {
                         Manage Orders
                     </header>
                     <div className="flex justify-end items-center mt-8">
-                        <form className="w-[50%] grid grid-cols-3 gap-6">
+                        <form className="w-[60%] grid grid-cols-3 gap-6">
                             <div className="col-span-2">
                                 <InputForm
                                     id="q"
@@ -107,10 +134,13 @@ const ManageOrders = ({ dispatch, navigate, location }) => {
                                 />
                             </div>
                         </form>
+                        <div className="flex items-center justify-center ">
+                            <ExportExcelButton data={orders || []} fileName="Order" columns={orderColumns} />
+                        </div>
                     </div>
                     <div className="overflow-x-auto mt-8 rounded-lg shadow-md">
                         <table className="table-auto w-full text-left bg-white">
-                            <thead className="font-semibold text-[14px] text-center bg-main text-white">
+                            <thead className="font-semibold uppercase text-[14px] text-center bg-main text-white">
                                 <tr>
                                     <th className="px-6 py-4">#</th>
                                     <th className="px-6 py-4">Order ID</th>

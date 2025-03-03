@@ -1,0 +1,39 @@
+{
+    "navigation": {
+        "HOME": "Home",
+        "PRODUCTS": "Products",
+        "BLOGS": "Blogs",
+        "OUR SERVICES": "Our Services",
+        "FAQs": "FAQs",
+        "CONTACT": "Contact"
+    },
+    "header": {
+        "CHECK_OUT": "Check Out",
+        "PURCHASE_INVOICE": "Purchase Invoice",
+        "SEARCH_PLACEHOLDER": "What product are you looking for?",
+        "ONLINE_SUPPORT": "Online Support 24/7",
+        "ITEMS": "item(s)",
+        "PROFILE": "Profile",
+        "PERSONAL": "Personal",
+        "ADMIN_WORKSPACE": "Admin Workspace",
+        "LOGOUT": "Logout"
+    },
+    "sidebar": {
+        "ALL_COLLECTIONS": "All Collections",
+        "Smartphone": "Smartphone",
+        "Tablet": "Tablet",
+        "Laptop": "Laptop",
+        "Accessories": "Accessories",
+        "Smartwatch": "Smartwatch",
+        "Printer": "Printer",
+        "Speaker": "Speaker",
+        "Camera": "Camera",
+        "Headphones": "Headphones"
+    },"deal_daily": {
+        "DEAL_DAILY": "Deal Daily",
+        "HOURS": "Hours",
+        "MINUTES": "Minutes",
+        "SECONDS": "Seconds",
+        "OPTIONS": "Options"
+    }
+}

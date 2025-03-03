@@ -33,3 +33,9 @@ export const apiUpdateOrderStatus = (oid, status) =>
         method: 'put',
         data: { status },
     });
+
+export const apiGetSameOrderProduct = (pid) =>
+    axios({
+        url: '/order/bought-together/' + pid,
+        method: 'get',
+    });

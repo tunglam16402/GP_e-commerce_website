@@ -19,6 +19,7 @@ const Blogs = () => {
     };
 
     useEffect(() => {
+        
         fetchBlogs();
     }, []);
 

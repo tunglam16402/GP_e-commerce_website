@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import path from 'utils/path';
 import clsx from 'clsx';
+import { AiFillStar } from 'react-icons/ai';
 
 const { BsFillSuitHeartFill, AiFillEye, FaCartPlus, BsFillCartCheckFill } = icons;
 
@@ -88,6 +89,20 @@ const Product = ({
         }
     };
 
+    const saveToHistory = (product) => {
+        const viewedProducts = JSON.parse(localStorage.getItem('viewedProducts')) || [];
+
+        const updatedProducts = viewedProducts.filter((item) => item._id !== product._id);
+
+        updatedProducts.unshift(product);
+
+        if (updatedProducts.length > 10) {
+            updatedProducts.pop();
+        }
+
+        localStorage.setItem('viewedProducts', JSON.stringify(updatedProducts));
+    };
+
     return (
         <div
             className={clsx(
@@ -97,9 +112,10 @@ const Product = ({
         >
             <div
                 className="w-full border p-[15px] flex flex-col items-center"
-                onClick={(e) =>
-                    navigate(`/${productData?.category?.toLowerCase()}/${productData?._id}/${productData?.title}`)
-                }
+                onClick={(e) => {
+                    saveToHistory(productData); // Lưu vào localStorage
+                    navigate(`/${productData?.category?.toLowerCase()}/${productData?._id}/${productData?.title}`);
+                }}
                 onMouseEnter={(e) => {
                     e.stopPropagation();
                     setIsShowOption(true);
@@ -166,34 +182,11 @@ const Product = ({
                         {isNew ? 'New' : 'Trending'}
                     </span>
                 </div>
-                <div className="flex flex-col gap-1 mt-[15px] items-start w-full">
-                    <span className="line-clamp-1">{productData?.title}</span>
-                    <span className="flex h-4">
-                        {renderStarFromNumber(productData?.totalRatings)?.map((element, index) => (
-                            <span key={index}>{element}</span>
-                        ))}
+                <div className="flex flex-col gap-1 mt-[15px] items-start group w-full">
+                    <span className="line-clamp-2 text-lg min-h-[48px] transition-colors duration-300 group-hover:text-main">
+                        {productData?.title}
                     </span>
-                    {/* <div className="flex flex-col items-start">
-                        <div className="flex items-center">
-                            {productData?.discount > 0 ? (
-                                <>
-                                    <span className="text-gray-500 line-through font-semibold mr-2">
-                                        {formatMoney(productData?.price)} VNĐ
-                                    </span>
-                                    <span className="text-red-600 font-semibold mr-2">
-                                        -{productData?.discount}% 
-                                    </span>
-                                </>
-                            ) : (
-                                <span>{formatMoney(productData?.price)} VNĐ</span>
-                            )}
-                        </div>
-                        {productData?.discountPrice && productData?.discountPrice > 0 && (
-                            <span className="text-main text-[24px] py-2 font-semibold">
-                                {formatMoney(productData?.discountPrice)} VNĐ
-                            </span>
-                        )}
-                    </div> */}
+
                     <div className="flex flex-col items-start">
                         <div className="flex items-center">
                             {/* Giá gốc bị gạch ngang và phần trăm giảm giá */}
@@ -211,12 +204,22 @@ const Product = ({
                                 </span>
                             )}
                         </div>
+
                         {/* Hiển thị Giá Sau Giảm (nếu có) */}
                         {productData?.discountPrice && productData?.discountPrice > 0 && productData?.discount > 0 && (
                             <span className="text-main text-[22px] py-2 font-semibold">
                                 {formatMoney(productData?.discountPrice)} VNĐ
                             </span>
                         )}
+
+                        <div className="flex items-center gap-2 mt-2">
+                            {/* Ngôi sao duy nhất và totalRatings */}
+                            <div className="flex items-center gap-1">
+                                <AiFillStar color="orange" size={16} />
+                                <span className="text-sm text-gray-700">{productData?.totalRatings || 0}</span>
+                            </div>
+                            <span className="text-sm text-gray-700 italic">sold {productData?.sold}</span>
+                        </div>
                     </div>
                 </div>
             </div>

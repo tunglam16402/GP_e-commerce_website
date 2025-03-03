@@ -34,6 +34,13 @@ export const apiUpdateProduct = (data, pid) =>
         data,
     });
 
+export const apiUpdateProductQuantity = (quantity, pid) =>
+    axios({
+        url: `/product/update-quantity/${pid}`,
+        method: 'put',
+        data: { quantity }, // Phải đặt quantity trong data
+    });
+
 export const apiDeleteProduct = (pid) =>
     axios({
         url: '/product/' + pid,
@@ -64,4 +71,10 @@ export const apiDeleteVariant = (sku) =>
     axios({
         url: `/product/variant/${sku}`,
         method: 'delete',
+    });
+
+export const apiBanProduct = (pid) =>
+    axios({
+        url: `/product/ban-product/${pid}`,
+        method: 'put',
     });

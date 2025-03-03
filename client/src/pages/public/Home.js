@@ -9,6 +9,7 @@ import {
     Chatbot,
     ProductHomePage,
     BlogList,
+    BoughtTogetherPage,
 } from 'components';
 import { useSelector } from 'react-redux';
 import icons from '../../utils/icons';
@@ -33,10 +34,13 @@ const Home = ({ navigate }) => {
                     <BestSeller></BestSeller>
                 </div>
             </div>
-            <div className="mt-8 bg-white p-4 border shadow-md">
+            <div className="mt-8 w-main bg-white p-4 border shadow-md">
                 <ProductHomePage />
             </div>
-            <div className="mt-8 bg-white p-4 border shadow-md">
+            <div className="mt-8 w-main bg-white p-4 border shadow-md">
+                <BoughtTogetherPage />
+            </div>
+            <div className="mt-8 w-main bg-white p-4 border shadow-md">
                 <FeatureProducts></FeatureProducts>
             </div>
             <div className="mt-8 w-main bg-white p-4 border shadow-md">
@@ -49,7 +53,7 @@ const Home = ({ navigate }) => {
             </div>
             <div className="w-main mt-8 bg-white p-4 border shadow-md">
                 <h3 className="text-4xl font-semibold text-gray-900 py-6 border-b-4 border-main uppercase tracking-widest">
-                    hot collections
+                    Featured Collections
                 </h3>
                 <div className="flex flex-wrap gap-6 mt-6">
                     {categories

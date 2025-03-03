@@ -61,57 +61,6 @@ const CustomizeVariants = ({ customizeVariant, setCustomizeVariant, render }) =>
         if (watch('images') instanceof FileList && watch('images').length > 0) handlePreviewImages(watch('images'));
     }, [watch('images')]);
 
-    // const handleAddVariant = async (data) => {
-    //     if (data.color === customizeVariant.color) {
-    //         Swal.fire('Oops', 'Color not changed', 'info');
-    //     } else {
-    //         const formData = new FormData();
-    //         for (let i of Object.entries(data)) {
-    //             formData.append(i[0], i[1]);
-    //         }
-    //         if (data.thumb) {
-    //             formData.append('thumb', data.thumb[0]);
-    //         }
-    //         if (data.images) {
-    //             for (let image of data.images) {
-    //                 formData.append('images', image);
-    //             }
-    //         }
-    //         console.log([...formData.entries()]); // Kiểm tra nội dung formData
-    //         dispatch(showModal({ isShowModal: true, modalChildren: <Loading></Loading> }));
-    //         const response = await apiAddVariant(formData, customizeVariant._id);
-    //         console.log('Variant ID:', customizeVariant._id);
-    //         dispatch(showModal({ isShowModal: false, modalChildren: null }));
-    //         console.log(response);
-    //     }
-    // };
-    // const handleAddVariant = async (data) => {
-    //     if (data.color === customizeVariant.color) {
-    //         Swal.fire('Oops', 'Color not changed', 'info');
-    //     } else {
-    //         const formData = new FormData();
-    //         for (let i of Object.entries(data)) {
-    //             formData.append(i[0], i[1]);
-    //         }
-    //         if (data.thumb) {
-    //             formData.append('thumb', data.thumb[0]);
-    //         }
-    //         if (data.images) {
-    //             for (let image of data.images) {
-    //                 formData.append('images', image);
-    //             }
-    //         }
-    //         dispatch(showModal({ isShowModal: true, modalChildren: <Loading></Loading> }));
-    //         const response = await apiAddVariant(customizeVariant._id, formData);
-    //         dispatch(showModal({ isShowModal: false, modalChildren: null }));
-    //         if (response.success) {
-    //             toast.success(response.message);
-    //             reset();
-    //             render();
-    //             setPreview({ thumb: '', images: [] });
-    //         } else toast.error(response.message);
-    //     }
-    // };
     const handleAddVariant = async (data) => {
         data.price = parseFloat(data.price); // Chuyển về số
         data.discount = parseFloat(data.discount) || 0; // Nếu không có discount thì mặc định là 0
@@ -161,12 +110,11 @@ const CustomizeVariants = ({ customizeVariant, setCustomizeVariant, render }) =>
 
     return (
         <div className=" w-full flex flex-col bg-gray-100 px-4 relative">
-            <div className="h-[80px] w-full"></div>
-            <div className="flex justify-between right-0 left-[250px] px-4 bg-main z-50 items-center fixed">
-                <h1 className="h-[75px] flex justify-between uppercase text-white items-center text-3xl font-bold ">
-                    Add new variation
+            <div className="flex justify-between items-center ">
+                <h1 className="text-4xl w-full font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
+                    <span>Add new variant</span>
                 </h1>
-                <span className="text-white hover:underline cursor-pointer " onClick={() => setCustomizeVariant(null)}>
+                <span className="text-main text-lg hover:underline cursor-pointer " onClick={() => setCustomizeVariant(null)}>
                     Cancel
                 </span>
             </div>

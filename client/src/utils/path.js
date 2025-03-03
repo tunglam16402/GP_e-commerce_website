@@ -14,7 +14,6 @@ const path = {
     FINAL_REGISTER: 'finalRegister/:status',
     RESET_PASSWORD: 'resetpassword/:token',
     DETAIL_CART: 'my-cart',
-    CHECKOUT: 'checkout',
     PRODUCTS: 'products',
     DETAIL_BLOGS: 'blog/:bid/:title',
 
@@ -31,12 +30,17 @@ const path = {
     CREATE_PRODUCT_CATEGORY: 'create-product-category',
     CREATE_BLOG: 'create-blog',
     MANAGE_BLOG: 'manage-blog',
+    MANAGE_STOCK: 'manage-stock',
 
     //Member path
     MEMBER: 'member',
     PERSONAL: 'personal',
+    HISTORY_VIEW: 'history-view',
     WISHLIST: 'wishlist',
     HISTORY_BUY: 'history-buy',
+    CHANGE_PASSWORD: 'change-password',
+    CHECKOUT: 'checkout',
+    PURCHASEINVOICE: 'purchase-invoice',
 };
 
 export default path;

@@ -75,14 +75,14 @@ const Cart = ({ dispatch, navigate }) => {
             <div className="row-span-3 h-full">
                 <div className="flex items-center justify-between my-4 pt-4 border-t border-gray-700">
                     <span>Subtotal:</span>
-                    <span className="font-medium text-lg text-main">
+                    <span className="font-medium text-[22px] text-main">
                         {formatMoney(currentCart?.reduce((sum, el) => sum + Number(el.price) * el.quantity, 0)) +
                             ' VND'}
                     </span>
                 </div>
-                <span className="text-center text-sm text-gray-400 italic">
+                {/* <span className="text-center text-sm text-gray-400 italic">
                     Shipping, taxes, and discounts calculated at checkout.
-                </span>
+                </span> */}
                 <Button
                     handleOnclick={() => {
                         dispatch(showCart({ isShowCart: false }));

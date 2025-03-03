@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 
-const Button = ({ children, handleOnclick, style, fullWidth, type = 'button' }) => {
+const Button = ({ children, handleOnclick, style, fullWidth, type = 'button', disabled = false }) => {
     return (
         <div>
             <button
@@ -12,9 +12,15 @@ const Button = ({ children, handleOnclick, style, fullWidth, type = 'button' }) 
                               fullWidth ? 'w-full' : 'w-fit'
                           }`
                 }
+                // onClick={() => {
+                //     handleOnclick && handleOnclick();
+                // }}
                 onClick={() => {
-                    handleOnclick && handleOnclick();
+                    if (!disabled && handleOnclick) {
+                        handleOnclick();
+                    }
                 }}
+                disabled={disabled}
             >
                 {children}
             </button>

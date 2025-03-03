@@ -8,11 +8,13 @@ import { showModal } from 'store/app/appSlice';
 import Swal from 'sweetalert2';
 import path from 'utils/path';
 import { useNavigate } from 'react-router-dom';
+import { apiGetUserOrders } from 'apis';
 
 const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderRateComment }) => {
     const [activedTab, setActivedTab] = useState(1);
     const dispatch = useDispatch();
     const { isLoggedIn } = useSelector((state) => state.user);
+
     const navigate = useNavigate();
 
     const handleSubmitRateAction = async ({ comment, star }) => {
@@ -26,7 +28,7 @@ const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderR
     };
 
     //hanlde when clicked in Rate now button
-    const handleRateNow = () => {
+    const handleRateNow = async () => {
         if (!isLoggedIn) {
             Swal.fire({
                 text: 'Your must login first to Rate',
@@ -36,43 +38,50 @@ const ProductInformation = ({ totalRatings, ratings, nameProduct, pid, rerenderR
                 showCancelButton: true,
             }).then((response) => {
                 if (response.isConfirmed) {
-                    navigate(`/${path.AUTH}`);
+                    navigate(`/${path.AUTH}?redirect=${encodeURIComponent(window.location.pathname)}`);
                 }
             });
         } else {
-            dispatch(
-                showModal({
-                    isShowModal: true,
-                    modalChildren: (
-                        <RateOption
-                            nameProduct={nameProduct}
-                            handleSubmitRateAction={handleSubmitRateAction}
-                        ></RateOption>
-                    ),
-                }),
-            );
+            try {
+                const response = await apiGetUserOrders();
+                console.log(response);
+                // Kiểm tra xem sản phẩm có tồn tại trong lịch sử mua hàng hay không
+                const hasPurchased = response?.orders?.some((order) =>
+                    order.products?.some((product) => product.product === pid),
+                );
+
+                if (hasPurchased) {
+                    dispatch(
+                        showModal({
+                            isShowModal: true,
+                            modalChildren: (
+                                <RateOption
+                                    nameProduct={nameProduct}
+                                    handleSubmitRateAction={handleSubmitRateAction}
+                                ></RateOption>
+                            ),
+                        }),
+                    );
+                } else {
+                    Swal.fire({
+                        text: 'You need to purchase this product before rating!',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking purchase history:', error);
+                Swal.fire({
+                    text: 'An error occurred. Please try again later!',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            }
         }
     };
 
     return (
         <div>
-            {/* <div className="flex uppercase gap-1 items-center relative bottom-[-1px]">
-                {productInFoTabs.map((element) => (
-                    <span
-                        className={`py-2 px-6 cursor-pointer ${
-                            activedTab === element.id ? 'bg-white border border-b-0' : 'bg-gray-200'
-                        }`}
-                        key={element.id}
-                        onClick={() => setActivedTab(element.id)}
-                    >
-                        {element.name}
-                    </span>
-                ))}
-            </div>
-            <div className="w-full border p-4">
-                {productInFoTabs.some((element) => element.id === activedTab) &&
-                    productInFoTabs.find((element) => element.id === activedTab)?.content}
-            </div> */}
             <div className="w-main m-auto mt-8 bg-white border px-4">
                 <h3 className="text-[20px] font-semibold py-[15px] border-b-2 border-main uppercase">
                     Customer reviews

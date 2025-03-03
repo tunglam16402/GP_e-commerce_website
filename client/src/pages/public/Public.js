@@ -6,6 +6,8 @@ import path from '../../utils/path';
 const Public = () => {
     const location = useLocation();
     const isLoginPage = location.pathname === `/${path.AUTH}`;
+    const isCheckoutPage = location.pathname === '/checkout';
+    const isInvoicePage = location.pathname === '/purchase-invoice';
 
     return (
         <div className="w-full max-h-screen overflow-y-auto flex flex-col items-center bg-gray-50 ">
@@ -13,8 +15,8 @@ const Public = () => {
                 <TopHeader />
             </div>
             <Header />
-            {!isLoginPage && (
-                <div className=" pt-[120px]">
+            {!(isLoginPage || isCheckoutPage || isInvoicePage) && (
+                <div className="pt-[120px]">
                     <Navigation />
                 </div>
             )}

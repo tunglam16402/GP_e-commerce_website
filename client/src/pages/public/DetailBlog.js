@@ -1,25 +1,27 @@
-
 import { apiGetDetailBlog, apiLikeBlog, apiDislikeBlog } from 'apis/blog';
 import { Breadcrumbs } from 'components';
 import withBaseComponent from 'hocs/withBaseComponent';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
 
 const DetailBlog = () => {
-    const { bid, title } = useParams(); 
-    const [blog, setBlog] = useState(null); 
-    const [likes, setLikes] = useState(0); 
-    const [dislikes, setDislikes] = useState(0); 
-    const [isLiked, setIsLiked] = useState(false); 
-    const [isDisliked, setIsDisliked] = useState(false); 
+    const { bid, title } = useParams();
+    const [blog, setBlog] = useState(null);
+    const [likes, setLikes] = useState(0);
+    const [dislikes, setDislikes] = useState(0);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isDisliked, setIsDisliked] = useState(false);
+
+    const titleRef = useRef();
 
     // Lấy dữ liệu blog từ API
     const fetchBlogs = async () => {
         try {
             const response = await apiGetDetailBlog(bid);
             if (response.success) {
-                setBlog(response.response); 
+                setBlog(response.response);
                 setLikes(response.response.likes.length);
                 setDislikes(response.response.dislikes.length);
                 setIsLiked(response.response.likes.includes(bid));
@@ -36,6 +38,7 @@ const DetailBlog = () => {
         if (bid) {
             fetchBlogs();
         }
+        titleRef.current?.scrollIntoView({ block: 'start' });
     }, [bid]);
 
     const handleLike = async () => {
@@ -83,7 +86,7 @@ const DetailBlog = () => {
             {/* Blog Section */}
             <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-8">
                 {/* Blog Container */}
-                <div className="w-main mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
+                <div ref={titleRef} className="w-main mx-auto bg-white shadow-2xl rounded-lg overflow-hidden">
                     {/* Image */}
                     <div className="w-full h-[500px] bg-gray-200 overflow-hidden">
                         <img

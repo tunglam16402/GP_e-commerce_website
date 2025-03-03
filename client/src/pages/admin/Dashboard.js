@@ -17,6 +17,7 @@ import {
     Cell,
 } from 'recharts';
 import dayjs from 'dayjs';
+import moment from 'moment';
 
 const Dashboard = () => {
     const [totalOrders, setTotalOrders] = useState(0);
@@ -31,12 +32,29 @@ const Dashboard = () => {
 
     const [dailyRevenues, setDailyRevenues] = useState([]);
     const [monthlyRevenues, setMonthlyRevenues] = useState([]);
-    const [selectedMonth, setSelectedMonth] = useState(dayjs().month() + 1); // Tháng hiện tại (1-12)
-    const [selectedYear, setSelectedYear] = useState(dayjs().year()); // Mặc định là năm hiện tại
+    const [selectedMonth, setSelectedMonth] = useState(dayjs().month() + 1);
+    const [selectedYear, setSelectedYear] = useState(dayjs().year());
 
     const [orderStatusData, setOrderStatusData] = useState([]);
+    const [bestSellingProducts, setBestSellingProducts] = useState([]);
+    const [newestOrder, setNewestOrder] = useState([]);
 
-    const statusColors = ['#4caf50', '#ff9800', '#f44336']; // Màu cho các trạng thái đơn hàng
+    const statusColors = ['#4caf50', '#ff9800', '#f44336'];
+
+    const monthNames = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+    ];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,6 +62,8 @@ const Dashboard = () => {
                 const orders = await apiGetOrders();
                 const users = await apiGetUsers();
                 const products = await apiGetProducts();
+                const bestSell = await apiGetProducts({ sort: '-sold', limit: 10 });
+                const newOrder = await apiGetOrders({ sort: '-createdAt', limit: 10, status: 'Processing' });
 
                 if (orders.success) {
                     setTotalOrders(orders.counts || 0);
@@ -52,31 +72,28 @@ const Dashboard = () => {
                     setMonthlyRevenue(orders.monthlyRevenue || 0);
                     setYearlyRevenue(orders.yearlyRevenue || 0);
 
-                    // 🔹 Lấy danh sách tất cả các ngày trong tháng được chọn
-                    const now = dayjs().month(selectedMonth - 1); // Chuyển tháng về 0-11
+                    const now = dayjs().month(selectedMonth - 1);
                     const daysInMonth = now.daysInMonth();
                     const allDays = Array.from({ length: daysInMonth }, (_, i) => ({
-                        _id: now.date(i + 1).format('YYYY-MM-DD'), // Format ngày
-                        revenue: 0, // Mặc định không có doanh thu
+                        _id: now.date(i + 1).format('YYYY-MM-DD'),
+                        revenue: 0,
                     }));
 
-                    // 🔹 Lọc doanh thu từ API theo tháng đã chọn
                     const revenueMap = new Map(
                         orders.dailyRevenues
                             .filter((item) => dayjs(item._id).month() + 1 === selectedMonth)
                             .map((item) => [item._id, item.revenue]),
                     );
 
-                    // 🔹 Gán lại giá trị revenue từ dữ liệu API nếu có
                     const mergedData = allDays.map((day) => ({
                         _id: day._id,
-                        revenue: revenueMap.get(day._id) || 0, // Nếu không có doanh thu, đặt 0
+                        revenue: revenueMap.get(day._id) || 0,
                     }));
 
                     setDailyRevenues(mergedData);
 
                     const allMonths = Array.from({ length: 12 }, (_, i) => ({
-                        _id: `Tháng ${i + 1}`,
+                        _id: monthNames[i], // Lấy tên tháng từ mảng
                         revenue: 0,
                     }));
 
@@ -107,26 +124,25 @@ const Dashboard = () => {
                     setTotalProducts(products.counts || 0);
                     setTotalReviews(products.totalRatings || 0);
                 }
+                if (bestSell.success) {
+                    setBestSellingProducts(bestSell.products);
+                }
+                if (newOrder.success) {
+                    setNewestOrder(newOrder.orders);
+                }
             } catch (error) {
                 console.error('Lỗi khi lấy dữ liệu:', error);
             }
         };
 
         fetchData();
-    }, [selectedMonth, selectedYear]); // Cập nhật khi tháng thay đổi
-
-    // const revenueData = [
-    //     { name: 'Ngày', revenue: dailyRevenue },
-    //     { name: 'Tuần', revenue: weeklyRevenue },
-    //     { name: 'Tháng', revenue: monthlyRevenue },
-    //     { name: 'Năm', revenue: yearlyRevenue },
-    // ];
+    }, [selectedMonth, selectedYear]);
 
     return (
         <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <header className="text-3xl font-semibold py-6 text-main border-b-4 border-main shadow-md">
-                        Manage Orders
-                    </header>
+            <header className="text-4xl font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
+                Statistics
+            </header>
             {/* Statistic Cards */}
             <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="p-5 bg-white shadow-lg rounded-lg flex items-center gap-4">
@@ -200,7 +216,6 @@ const Dashboard = () => {
             {/* Monthly Revenue Chart */}
             {/* Monthly Revenue Chart & Order Status Pie Chart */}
             <div className="md:col-span-4 p-6 bg-white shadow-lg rounded-lg flex gap-4">
-                {/* Monthly Revenue Chart (70%) */}
                 <div className="w-[70%] bg-white p-6 shadow-lg rounded-lg">
                     <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">Monthly Revenue Chart</h2>
                     <div className="mb-4 text-center">
@@ -227,7 +242,6 @@ const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
 
-                {/* Order Status Pie Chart (30%) */}
                 <div className="w-[30%] bg-white p-6 shadow-lg rounded-lg">
                     <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">Order Status Distribution</h2>
                     {orderStatusData.length > 0 ? (
@@ -257,7 +271,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Daily Revenue Chart */}
             <div className="md:col-span-4 p-6 bg-white shadow-lg rounded-lg">
                 <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">Daily Revenue Chart</h2>
                 <div className="mb-4 text-center">
@@ -282,6 +295,63 @@ const Dashboard = () => {
                         <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
                     </LineChart>
                 </ResponsiveContainer>
+            </div>
+            <div className="md:col-span-4 p-6 bg-white shadow-lg rounded-lg">
+                <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">Best Selling Products</h2>
+                <div className="max-h-80 overflow-y-auto border border-gray-200">
+                    <table className="min-w-full bg-white border-collapse">
+                        <thead className="bg-gray-100 uppercase sticky top-0 z-10">
+                            <tr>
+                                <th className="p-3 text-left">Image</th>
+                                <th className="p-3 text-left">Product Name</th>
+                                <th className="p-3 text-left">Price</th>
+                                <th className="p-3 text-left">Sold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {bestSellingProducts.map((product) => (
+                                <tr key={product._id} className="border-t">
+                                    <td className="p-3">
+                                        <img
+                                            src={product.thumb}
+                                            alt={product.name}
+                                            className="w-16 h-16 object-cover rounded-md"
+                                        />
+                                    </td>
+                                    <td className="p-3">{product.title}</td>
+                                    <td className="p-3">{formatDollarToVND(product.price)}</td>
+                                    <td className="p-3">{product.sold}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div className="md:col-span-4 p-6 bg-white shadow-lg rounded-lg">
+                <h2 className="text-2xl font-semibold mb-8 text-center text-gray-700">New Order Needs Confirmation</h2>
+                <table className="min-w-full uppercase bg-white border border-gray-200">
+                    <thead>
+                        <tr className="bg-gray-100">
+                            <th className="p-3 text-left">Order ID</th>
+                            <th className="p-3 text-left">Order status</th>
+                            <th className="p-3 text-left">Order date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {newestOrder.map((newOrder) => (
+                            <tr key={newOrder._id} className="border-t">
+                                <td className="p-3">{newOrder._id}</td>
+                                <td className="p-3">
+                                    <span className="bg-yellow-500 text-white px-2 py-1 rounded">
+                                        {newOrder.status}
+                                    </span>
+                                </td>
+                                <td className="p-3">{moment(newOrder.createdAt)?.format('HH:mm:ss DD/MM/YYYY')}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

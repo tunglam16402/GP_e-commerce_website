@@ -11,26 +11,6 @@ const ViewVariants = ({ product, render, setViewVariantsProduct }) => {
         setViewVariantsProduct(null); // Đóng modal khi người dùng bấm "Close"
     };
 
-    // const handleDeleteVariant = async (sku) => {
-    //     Swal.fire({
-    //         title: 'Delete product variant',
-    //         text: 'Are you sure to delete this product variant?',
-    //         icon: 'warning',
-    //         showCancelButton: true,
-    //     }).then(async (result) => {
-    //         if (result.isConfirmed) {
-    //             console.log(`Calling API: /product/variant/${sku}`);
-    //             const response = await apiDeleteVariant(sku);
-    //             console.log('API Response:', response);
-
-    //             if (response.success) {
-    //                 toast.success(response.message);
-    //             } else {
-    //                 toast.error(response.message);
-    //             }
-    //         }
-    //     });
-    // };
     const handleDeleteVariant = async (sku) => {
         Swal.fire({
             title: 'Delete product variant',
@@ -77,7 +57,7 @@ const ViewVariants = ({ product, render, setViewVariantsProduct }) => {
             {/* Hiển thị danh sách variant dạng bảng */}
             <div className="mt-4">
                 <table className="table-auto w-full bg-white shadow-md rounded-lg overflow-hidden">
-                    <thead className="font-bold w-full bg-main text-sm text-white text-center">
+                    <thead className="font-bold uppercase w-full bg-main text-sm text-white text-center">
                         <tr>
                             <th className="px-4 py-3">#</th>
                             <th className="px-4 py-3">Thumb</th>

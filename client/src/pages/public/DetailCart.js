@@ -11,6 +11,7 @@ import path from 'utils/path';
 
 const DetailCart = ({ location, navigate }) => {
     const { currentCart, current } = useSelector((state) => state.user);
+    console.log(currentCart);
     const handleSubmit = () => {
         if (!current?.address) {
             return Swal.fire({
@@ -42,12 +43,12 @@ const DetailCart = ({ location, navigate }) => {
                     <Breadcrumbs category={location?.path}></Breadcrumbs>
                 </div>
             </div>
-            <div className="w-main mx-auto font-bold my-8 border py-3 grid grid-cols-10">
+            <div className="w-main bg-white mx-auto font-bold my-8 border border-gray-200 py-3 grid grid-cols-10">
                 <span className="col-span-6 w-full text-center uppercase text-lg font-semibold">Product</span>
                 <span className="col-span-1 w-full text-center uppercase text-lg font-semibold">Quantity</span>
                 <span className="col-span-3 w-full text-center uppercase text-lg font-semibold">Price</span>
             </div>
-            <div className="border flex flex-col w-main mx-auto my-8">
+            <div className="border border-gray-200 bg-white flex flex-col w-main mx-auto my-8">
                 {currentCart?.map((el) => (
                     <OrderItem
                         key={el._id}
@@ -61,14 +62,14 @@ const DetailCart = ({ location, navigate }) => {
                     />
                 ))}
             </div>
-            <div className="w-main mx-auto flex flex-col mb-12 justify-center items-end gap-3">
+            <div className="w-main bg-white border border-gray-200 p-4 mx-auto flex flex-col mb-12 justify-center items-end gap-3">
                 <span className="flex items-center gap-8">
                     <span className="text-[20px]">Subtotal:</span>
                     <span className="text-main text-2xl font-semibold">{`${formatMoney(
                         currentCart?.reduce((sum, el) => +el?.price * el?.quantity + sum, 0),
                     )} VND`}</span>
                 </span>
-                <span className="text-gray-700 italic">Shipping, taxes, and discounts calculated at checkout</span>
+                {/* <span className="text-gray-700 italic">Shipping, taxes, and discounts calculated at checkout</span> */}
                 <Button handleOnclick={handleSubmit}>Check Out</Button>
             </div>
         </div>

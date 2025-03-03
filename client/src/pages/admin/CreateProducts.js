@@ -64,37 +64,6 @@ const CreateProducts = () => {
         handlePreviewImages(watch('images'));
     }, [watch('images')]);
 
-    // const handleCreateProduct = async (data) => {
-    //     const invalids = validate(payload, setInvalidFields);
-    //     if (invalids === 0) {
-    //         if (data.category) data.category = categories?.find((element) => element._id === data.category)?.title;
-    //         const finalPayload = { ...data, ...payload };
-    //         const formData = new FormData();
-    //         for (let i of Object.entries(finalPayload)) {
-    //             formData.append(i[0], i[1]);
-    //         }
-    //         if (finalPayload.thumb) {
-    //             formData.append('thumb', finalPayload.thumb[0]);
-    //         }
-    //         if (finalPayload.images) {
-    //             for (let image of finalPayload.images) {
-    //                 formData.append('images', image);
-    //             }
-    //         }
-    //         dispatch(showModal({ isShowModal: true, modalChildren: <Loading></Loading> }));
-    //         const response = await apiCreateProduct(formData);
-    //         dispatch(showModal({ isShowModal: false, modalChildren: null }));
-
-    //         if (response.success) {
-    //             toast.success(response.message);
-    //             reset();
-    //             setPayload({
-    //                 thumb: '',
-    //                 image: '',
-    //             });
-    //         } else toast.error(response.message);
-    //     }
-    // };
     const handleCreateProduct = async (data) => {
         console.log(data);
         const invalids = validate(payload, setInvalidFields);
@@ -148,7 +117,7 @@ const CreateProducts = () => {
     return (
         <div className="w-full max-w-screen-xl mx-auto p-8 bg-gradient-to-r from-red-50 via-red-100 to-red-200 rounded-lg shadow-xl">
             <div className="mb-8">
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
+                <h1 className="text-4xl font-semibold text-gray-900 tracking-tight border-b-4 border-red-600 pb-2">
                     Create New Product
                 </h1>
             </div>
@@ -156,8 +125,10 @@ const CreateProducts = () => {
             <form onSubmit={handleSubmit(handleCreateProduct)} className="space-y-10">
                 {/* Product Name */}
                 <div>
+                    <label htmlFor="title" className="block text-xl font-semibold text-gray-800 ">
+                        Product title
+                    </label>
                     <InputForm
-                        label="Product Name"
                         register={register}
                         errors={errors}
                         id="title"
@@ -261,32 +232,41 @@ const CreateProducts = () => {
                     />
                 </div>
 
-                {/* Description Editor */}
-                <div>
-                    <MarkdownEditor
-                        name="description"
-                        changeValue={changeValue}
-                        label="Description"
-                        invalidFields={invalidFields}
-                        setInvalidFields={setInvalidFields}
-                        className="border border-gray-300 rounded-lg shadow-md p-4"
-                    />
-                </div>
+                <div className="grid grid-cols-1 gap-6">
+                    {/* Card cho Product Description */}
+                    <div className="bg-white p-6 rounded-2xl shadow-lg">
+                        <label htmlFor="description" className="block text-xl font-semibold text-gray-800 mb-3">
+                            Product Description
+                        </label>
+                        <MarkdownEditor
+                            name="description"
+                            changeValue={changeValue}
+                            invalidFields={invalidFields}
+                            setInvalidFields={setInvalidFields}
+                            className="border border-gray-300 rounded-lg p-4 focus:outline-none focus:border-main"
+                        />
+                    </div>
 
-                <div>
-                    <MarkdownEditor
-                        name="detailDescription"
-                        changeValue={changeValue}
-                        label="Detail Description"
-                        invalidFields={invalidFields}
-                        setInvalidFields={setInvalidFields}
-                        className="border border-gray-300 rounded-lg shadow-md p-4"
-                    />
+                    {/* Card cho Product Detail Description */}
+                    <div className="bg-white p-6 rounded-2xl shadow-lg">
+                        <label htmlFor="detail-description" className="block text-xl font-semibold text-gray-800 mb-3">
+                            Product Detail Description
+                        </label>
+                        <MarkdownEditor
+                            name="detailDescription"
+                            changeValue={changeValue}
+                            invalidFields={invalidFields}
+                            setInvalidFields={setInvalidFields}
+                            className="border border-gray-300 rounded-lg p-4 focus:outline-none focus:border-main"
+                        />
+                    </div>
                 </div>
 
                 {/* Thumbnail Upload */}
-                <div className="flex flex-col gap-4">
-                    <label className="font-semibold text-gray-800">Upload Thumbnail</label>
+                <div className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg">
+                    <label htmlFor="upload-thumb" className="block text-xl font-semibold text-gray-800 mb-3">
+                        Upload Thumbnail
+                    </label>
                     <input
                         type="file"
                         id="thumb"
@@ -298,7 +278,7 @@ const CreateProducts = () => {
                 </div>
 
                 {preview.thumb && (
-                    <div className="my-6 flex justify-center">
+                    <div className="my-6 flex justify-center bg-white p-6 rounded-2xl shadow-lg">
                         <img
                             src={preview.thumb}
                             alt="thumbnail"
@@ -308,8 +288,10 @@ const CreateProducts = () => {
                 )}
 
                 {/* Product Images Upload */}
-                <div className="flex flex-col gap-4">
-                    <label className="font-semibold text-gray-800">Upload Product Images</label>
+                <div className="flex flex-col gap-4 bg-white p-6 rounded-2xl shadow-lg">
+                    <label htmlFor="upload-image" className="block text-xl font-semibold text-gray-800 mb-3">
+                        Upload Product Images
+                    </label>
                     <input
                         type="file"
                         id="products"
@@ -323,7 +305,7 @@ const CreateProducts = () => {
 
                 {/* Product Images Preview */}
                 {preview.images.length > 0 && (
-                    <div className="my-6 flex justify-center gap-6 flex-wrap">
+                    <div className="my-6 flex justify-center gap-6 flex-wrap bg-white p-6 rounded-2xl shadow-lg">
                         {preview.images.map((element, index) => (
                             <div
                                 onMouseEnter={() => setHoverElement(element.name)}

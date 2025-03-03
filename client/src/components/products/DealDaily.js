@@ -10,7 +10,7 @@ const { AiFillStar, AiOutlineMenu } = icons;
 
 let idInterval;
 
-const DealDaily = ({ productData, isNew, normal, navigate, dispatch, location, pid, className }) => {
+const DealDaily = ({ dispatch, navigate, t }) => {
     const [dealDaily, setDealDaily] = useState(null);
     const [hour, setHour] = useState(0);
     const [minute, setMinute] = useState(0);
@@ -18,68 +18,71 @@ const DealDaily = ({ productData, isNew, normal, navigate, dispatch, location, p
     const [expireTime, setExpireTime] = useState(false);
 
     const fetchDealDaily = async () => {
-        const response = await apiGetProducts({ sort: '-totalRatings', limit: 20 });
+        const response = await apiGetProducts({ sort: '-discount', limit: 20 });
         if (response.success) {
-            setDealDaily(response.products[Math.round(Math.random() * 20)]);
-            //time reset = 5 am
-            const today = `${moment().format('MM/DD/YYYY')} 5:00:00`;
-            const seconds = new Date(today).getTime() - new Date().getTime() + 24 * 3600 * 1000;
+            const randomProduct = response.products[Math.round(Math.random() * 19)]; // 19 thay vì 20 để tránh lỗi
+            setDealDaily(randomProduct);
+            dispatch({ type: 'product/getDealDaily', payload: randomProduct });
+
+            // Thiết lập thời gian hết hạn là 24h (lưu vào localStorage)
+            const expiryTime = new Date().getTime() + 24 * 3600 * 1000;
+            localStorage.setItem('dealExpiryTime', expiryTime);
+
+            const seconds = expiryTime - new Date().getTime();
             const number = secondsToHms(seconds);
-            // const h = 24 - new Date().getHours();
-            // const m = 60 - new Date().getMinutes();
-            // const s = 60 - new Date().getSeconds();
+            setHour(number.h);
+            setMinute(number.m);
+            setSecond(number.s);
+        }
+    };
+
+    useEffect(() => {
+        const savedDeal = JSON.parse(localStorage.getItem('dealDaily'));
+        const expiryTime = localStorage.getItem('dealExpiryTime');
+
+        if (savedDeal && expiryTime && new Date().getTime() < expiryTime) {
+            setDealDaily(savedDeal);
+            const seconds = expiryTime - new Date().getTime();
+            const number = secondsToHms(seconds);
             setHour(number.h);
             setMinute(number.m);
             setSecond(number.s);
         } else {
-            setHour(0);
-            setMinute(59);
-            setSecond(59);
+            fetchDealDaily();
         }
-    };
-
-    // useEffect(() => {
-    //     fetchDealDaily();
-    // }, []);
-
-    useEffect(() => {
-        idInterval && clearInterval(idInterval);
-        fetchDealDaily();
     }, [expireTime]);
 
     useEffect(() => {
         idInterval = setInterval(() => {
             if (second > 0) {
                 setSecond((prev) => prev - 1);
+            } else if (minute > 0) {
+                setMinute((prev) => prev - 1);
+                setSecond(59);
+            } else if (hour > 0) {
+                setHour((prev) => prev - 1);
+                setMinute(59);
+                setSecond(59);
             } else {
-                if (minute > 0) {
-                    setMinute((prev) => prev - 1);
-                    setSecond(60);
-                } else {
-                    if (hour > 0) {
-                        setHour((prev) => prev - 1);
-                        setMinute(60);
-                        setSecond(60);
-                    } else {
-                        setExpireTime(!expireTime);
-                    }
-                }
+                setExpireTime(!expireTime);
             }
         }, 1000);
-        return () => {
-            clearInterval(idInterval);
-        };
+
+        return () => clearInterval(idInterval);
     }, [second, minute, hour, expireTime]);
 
     return (
         <div className="w-full border flex-auto">
             <div className="flex items-center justify-between p-4 w-full">
                 <span className="flex-1 flex justify-center">
-                    <AiFillStar size={20} color="#DD1111"></AiFillStar>
+                    <AiFillStar size={20} color="#DD1111" />
                 </span>
-                <span className="flex-8  text-[24px] flex justify-center text-gray-700">DEAL DAILY</span>
+                <span className="flex-8 text-[24px] flex justify-center text-gray-700">
+                    {t('deal_daily.DEAL_DAILY')}
+                </span>
                 <span className="flex-1"></span>
             </div>
+
             <div className="w-full flex flex-col items-center pt-8 px-4">
                 <img
                     src={
@@ -87,35 +90,47 @@ const DealDaily = ({ productData, isNew, normal, navigate, dispatch, location, p
                         'https://tse3.mm.bing.net/th?id=OIP.uOQ047yW1qXUtl2dpGhwvQHaHa&pid=Api&P=0&h=220'
                     }
                     alt="Product img"
-                    // className="w-[274px] h-[274px] object-cover"
                     className="w-full object-contain"
-                ></img>
-                <span className="line-clamp-1 text-center">{dealDaily?.title}</span>
+                />
+
+                <span className="line-clamp-2 text-xl mt-8 text-center">{dealDaily?.title}</span>
+
                 <span className="flex h-4 pb-8 pt-2">
                     {renderStarFromNumber(dealDaily?.totalRatings, 20)?.map((element, index) => (
                         <span key={index}>{element}</span>
                     ))}
                 </span>
-                <span className="">{`${formatMoney(dealDaily?.price)} VNĐ`}</span>
+
+                <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-500 line-through">{`${formatMoney(dealDaily?.price)} VNĐ`}</span>
+                        <span className="bg-red-500 text-white px-2 py-1 rounded-md text-sm">
+                            {`- ${dealDaily?.discount}%`}
+                        </span>
+                    </div>
+
+                    <span className="text-red-600 text-[24px] font-bold mt-1">
+                        {`${formatMoney(dealDaily?.discountPrice)} VNĐ`}
+                    </span>
+                </div>
             </div>
+
             <div className="px-4 mt-6">
                 <div className="flex justify-center gap-2 items-center mb-4">
-                    <DealCountDown unit={'Hours'} number={hour}></DealCountDown>
-                    <DealCountDown unit={'Minutes'} number={minute}></DealCountDown>
-                    <DealCountDown unit={'Seconds'} number={second}></DealCountDown>
+                    <DealCountDown unit={t('deal_daily.HOURS')} number={hour} />
+                    <DealCountDown unit={t('deal_daily.MINUTES')} number={minute} />
+                    <DealCountDown unit={t('deal_daily.SECONDS')} number={second} />
                 </div>
+
                 <button
                     type="button"
-                    className="flex gap-2 items-center justify-center w-full text-white bg-main hover:bg-gray-800 py-2 font-medium "
+                    className="flex gap-2 items-center justify-center w-full text-white bg-main hover:bg-gray-800 py-2 font-medium"
+                    onClick={() =>
+                        navigate(`/${dealDaily?.category?.toLowerCase()}/${dealDaily?._id}/${dealDaily?.title}`)
+                    }
                 >
-                    <AiOutlineMenu></AiOutlineMenu>
-                    <span
-                        onClick={(e) =>
-                            navigate(`/${dealDaily?.category?.toLowerCase()}/${dealDaily?._id}/${dealDaily?.title}`)
-                        }
-                    >
-                        OPTIONS
-                    </span>
+                    <AiOutlineMenu />
+                    <span>{t('deal_daily.OPTIONS')}</span>
                 </button>
             </div>
         </div>

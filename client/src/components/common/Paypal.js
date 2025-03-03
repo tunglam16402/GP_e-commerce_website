@@ -26,23 +26,23 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
         if (response.success) {
             setIsSuccess(true);
             setTimeout(() => {
-                // Swal.fire('Congratulation!', 'Order has been created', 'success').then(() => {
-                //     navigate('/');
-                // });
                 Swal.fire({
                     title: 'Congratulation',
                     text: 'Payment successful. Your order has been initiated.',
-                    cancelButtonText: 'Not now',
+                    cancelButtonText: 'View Purchase Invoice',
                     confirmButtonText: 'Go to Homepage',
                     icon: 'success',
                     showCancelButton: true,
                 }).then((rs) => {
                     if (rs.isConfirmed) {
                         navigate('/');
+                    } else if (rs.dismiss === Swal.DismissReason.cancel) {
+                        navigate('/purchase-invoice');
                     }
                 });
             }, 1500);
         }
+
     };
 
     return (
@@ -74,7 +74,7 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
 
 export default function Paypal({ amount, payload, setIsSuccess }) {
     return (
-        <div style={{ maxWidth: '750px', minHeight: '200px', margin: 'auto' }}>
+        <div style={{ maxWidth: '750px', minHeight: '140px', margin: 'auto' }}>
             <PayPalScriptProvider options={{ clientId: 'test', components: 'buttons', currency: 'USD' }}>
                 <ButtonWrapper
                     setIsSuccess={setIsSuccess}

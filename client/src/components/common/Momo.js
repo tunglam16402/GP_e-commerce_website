@@ -71,7 +71,7 @@ const requestBody = JSON.stringify({
 const options = {
     method: 'POST',
     url: 'https://test-payment.momo.vn/v2/gateway/api/create',
-    headers: {},
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(requestBody) },
 };
 // //Create the HTTPS objects
 // const https = require('https');
