@@ -16,7 +16,7 @@ const sendMail = asyncHandler(async ({ email, html, subject }) => {
     });
 
     const info = await transporter.sendMail({
-        from: '"GP E-commerce shop 👻" <testmail@GPshop.email>', // sender address
+        from: '"GP E-commerce shop " <testmail@GPshop.email>', // sender address
         to: email, // list of receivers
         subject: subject, // Subject line
         html: html, // html body

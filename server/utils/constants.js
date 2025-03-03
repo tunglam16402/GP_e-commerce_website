@@ -36,13 +36,3 @@ exports.users = [
     },
 ];
 
-// exports.role = [
-//     {
-//         code: 2002,
-//         value: 'Admin',
-//     },
-//     {
-//         code: 2006,
-//         value: 'User',
-//     },
-// ];

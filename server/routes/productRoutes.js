@@ -20,10 +20,12 @@ router.post(
     Controllers.createProduct,
 );
 router.get('/', Controllers.getAllProduct);
+// router.get('/', verifyAccessToken, Controllers.getAllProduct);
+
 router.put('/ratings', verifyAccessToken, Controllers.ratings);
 
 router.put(
-    '/update-variant/:sku', 
+    '/update-variant/:sku',
     [verifyAccessToken, isAdmin],
     upload.fields([
         {
@@ -63,6 +65,9 @@ router.put(
     ]),
     Controllers.addVariant,
 );
+
+router.put('/ban-product/:pid', [verifyAccessToken, isAdmin], Controllers.banProduct);
+router.put('/update-quantity/:pid', [verifyAccessToken, isAdmin], Controllers.updateProductQuantity);
 
 //xem sản phẩm thì không cần xác thực đăng nhập
 router.get('/:pid', Controllers.getProduct);

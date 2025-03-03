@@ -2,17 +2,7 @@ const Blog = require('../models/blogModel');
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
 
-// const createNewBlog = asyncHandler(async (req, res) => {
-//     const { title, description, category } = req.body;
-//     if (!title || !description || !category) {
-//         throw new Error('Missing inputs!!!');
-//     }
-//     const response = await Blog.create(req.body);
-//     return res.status(200).json({
-//         success: response ? true : false,
-//         createdBlog: response ? response : 'Can not create new blog !',
-//     });
-// });
+
 
 const createNewBlog = asyncHandler(async (req, res) => {
     // const { title, description } = req.body;
@@ -140,76 +130,6 @@ const getBlogs = asyncHandler(async (req, res) => {
         blogs: response || 'Cannot get Blog',
     });
 });
-
-//Api Like blog
-// const likeBlog = asyncHandler(async (req, res) => {
-//     //lấy id từ user
-//     const { _id } = req.user;
-//     //lấy id bài blog
-//     const { bid } = req.params;
-//     if (!bid) {
-//         throw new Error('Missing input !');
-//     }
-//     const blog = await Blog.findById(bid);
-//     //check xem trc đó có dislike không
-//     const alreadyLike = blog?.dislikes?.find((element) => element.toString() === _id);
-//     if (alreadyLike) {
-//         const response = await Blog.findByIdAndUpdate(bid, { $pull: { dislikes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     }
-//     const isLiked = blog?.likes?.find((element) => element.toString() === _id);
-//     if (isLiked) {
-//         const response = await Blog.findByIdAndUpdate(bid, { $pull: { likes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     } else {
-//         const response = await Blog.findByIdAndUpdate(bid, { $push: { likes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     }
-// });
-
-// //Api dislike blog
-// const disLikeBlog = asyncHandler(async (req, res) => {
-//     //lấy id từ user
-//     const { _id } = req.user;
-//     //lấy id bài blog
-//     const { bid } = req.params;
-//     if (!bid) {
-//         throw new Error('Missing input !');
-//     }
-//     const blog = await Blog.findById(bid);
-//     //check xem trc đó có dislike không
-//     const alreadyDisLike = blog?.likes?.find((element) => element.toString() === _id);
-//     if (alreadyDisLike) {
-//         const response = await Blog.findByIdAndUpdate(bid, { $pull: { likes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     }
-//     const isDisliked = blog?.dislikes?.find((element) => element.toString() === _id);
-//     if (isDisliked) {
-//         const response = await Blog.findByIdAndUpdate(bid, { $pull: { dislikes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     } else {
-//         const response = await Blog.findByIdAndUpdate(bid, { $push: { dislikes: _id } }, { new: true });
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             response: response,
-//         });
-//     }
-// });
 
 const likeBlog = asyncHandler(async (req, res) => {
     const { _id } = req.user; // Lấy id từ user

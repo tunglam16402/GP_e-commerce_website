@@ -5,6 +5,7 @@ const { generateAccessToken, generateRefreshToken } = require('../middlewares/jw
 const { json, response } = require('express');
 const sendMail = require('../utils/sendMail');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const makeToken = require('uniqid');
 const { users } = require('../utils/constants');
 const { OAuth2Client } = require('google-auth-library');
@@ -12,77 +13,6 @@ const { OAuth2Client } = require('google-auth-library');
 // Sử dụng biến môi trường để tránh hardcode
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const client = new OAuth2Client(CLIENT_ID);
-
-// const googleLogin = asyncHandler(async (req, res) => {
-//     let { token } = req.body;
-
-//     if (!token) {
-//         return res.status(400).json({ success: false, message: 'Thiếu Google token' });
-//     }
-
-//     try {
-//         console.log('Token nhận được:', token);
-
-//         const ticket = await client.verifyIdToken({
-//             idToken: token.trim(),
-//             audience: CLIENT_ID,
-//         });
-
-//         const payload = ticket.getPayload();
-//         console.log('Google User Payload:', payload);
-
-//         const { email, picture, sub: googleId, given_name, family_name } = payload;
-
-//         if (!email) {
-//             return res.status(400).json({ success: false, message: 'Không lấy được email từ Google' });
-//         }
-
-//         let user = await User.findOne({ email });
-
-//         if (!user) {
-//             console.log('Tạo người dùng mới');
-//             user = await User.create({
-//                 email,
-//                 firstname: given_name,
-//                 lastname: family_name,
-//                 avatar: picture,
-//                 googleId,
-//                 password: null,
-//                 role: 2006,
-//             });
-//         } else {
-//             console.log('Người dùng đã tồn tại');
-//         }
-
-//         const accessToken = generateAccessToken(user._id, user.role);
-//         const refreshToken = generateRefreshToken(user._id);
-
-//         user.refreshToken = refreshToken;
-//         await user.save();
-
-//         res.cookie('refreshToken', refreshToken, {
-//             httpOnly: true,
-//             secure: process.env.NODE_ENV === 'production',
-//             sameSite: 'Strict',
-//             maxAge: 7 * 24 * 60 * 60 * 1000,
-//         });
-
-//         return res.status(200).json({
-//             success: true,
-//             accessToken,
-//             userData: {
-//                 _id: user._id,
-//                 name: user.firstname + ' ' + user.lastname,
-//                 email: user.email,
-//                 avatar: user.avatar,
-//                 role: user.role,
-//             },
-//         });
-//     } catch (error) {
-//         console.error('Lỗi xác thực Google:', error);
-//         return res.status(401).json({ success: false, message: 'Token Google không hợp lệ' });
-//     }
-// });
 
 const googleLogin = asyncHandler(async (req, res) => {
     let { token } = req.body;
@@ -389,74 +319,93 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
-//API get info all user login (Admin)
-// const getUsers = asyncHandler(async (req, res) => {
-//     const queries = { ...req.query };
+const changePassword = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { oldPassword, newPassword } = req.body;
 
-//     // Tách các trường đặc biệt ra khỏi query
-//     const excludeFields = ['limit', 'sort', 'page', 'fields'];
-//     excludeFields.forEach((element) => delete queries[element]);
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: 'Vui lòng nhập đầy đủ thông tin',
+        });
+    }
 
-//     // Format lại operators cho đúng cú pháp mongoose
-//     let queryString = JSON.stringify(queries);
-//     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => {
-//         return `$${matchedElement}`;
-//     });
-//     const formattedQueries = JSON.parse(queryString);
+    const user = await User.findById(_id);
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            message: 'Người dùng không tồn tại',
+        });
+    }
 
-//     // Filtering
-//     if (queries?.name) {
-//         formattedQueries.name = { $regex: queries.name, $options: 'i' };
-//     }
+    // Kiểm tra mật khẩu cũ
+    console.log('Mật khẩu nhập:', password);
+    console.log('Mật khẩu lưu DB:', user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Kết quả so sánh:', isMatch);
+    if (!isMatch) {
+        return res.status(400).json({
+            success: false,
+            message: 'Mật khẩu cũ không chính xác',
+        });
+    }
 
-//     let queryCommand = User.find(formattedQueries);
+    // Hash mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.passwordChangedAt = new Date(); // Cập nhật thời gian đổi mật khẩu
+    await user.save();
 
-//     // Search admin user
-//     if (req.query.q) {
-//         delete formattedQueries.q;
-//         formattedQueries['$or'] = [
-//             { firstname: { $regex: req.query.q, $options: 'i' } },
-//             { lastname: { $regex: req.query.q, $options: 'i' } },
-//             { email: { $regex: req.query.q, $options: 'i' } },
-//         ];
-//         queryCommand = User.find(formattedQueries);
-//     }
+    return res.status(200).json({
+        success: true,
+        message: 'Đổi mật khẩu thành công',
+    });
+});
 
-//     // Sorting
-//     if (req.query.sort) {
-//         const sortBy = req.query.sort.split(',').join(' ');
-//         queryCommand = queryCommand.sort(sortBy);
-//     }
+// const changePassword = asyncHandler(async (req, res) => {
+//     const { _id } = req.user;
+//     const { oldPassword, newPassword } = req.body;
 
-//     // Fields limited
-//     if (req.query.fields) {
-//         const fields = req.query.fields.split(',').join(' ');
-//         queryCommand = queryCommand.select(fields);
-//     }
-
-//     const page = +req.query.page || 1;
-//     const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
-//     const skip = (page - 1) * limit;
-//     queryCommand.skip(skip).limit(limit);
-
-//     // Execute the query with error handling
-//     try {
-//         const response = await queryCommand.exec();
-//         const counts = await User.find(formattedQueries).countDocuments();
-
-//         res.status(200).json({
-//             success: response ? true : false,
-//             counts,
-//             users: response ? response : 'Cannot get users',
-//         });
-//     } catch (error) {
-//         res.status(500).json({
+//     if (!oldPassword || !newPassword) {
+//         return res.status(400).json({
 //             success: false,
-//             message: error.message,
+//             message: 'Vui lòng nhập đầy đủ thông tin',
 //         });
 //     }
+
+//     const user = await User.findById(_id);
+//     if (!user) {
+//         return res.status(404).json({
+//             success: false,
+//             message: 'Người dùng không tồn tại',
+//         });
+//     }
+
+//     // Kiểm tra mật khẩu cũ
+//     console.log('Mật khẩu nhập:', oldPassword);
+//     console.log('Mật khẩu lưu DB:', user.password);
+//     const isMatch = await bcrypt.compare(oldPassword, user.password);
+//     console.log('Kết quả so sánh:', isMatch);
+//     if (!isMatch) {
+//         return res.status(400).json({
+//             success: false,
+//             message: 'Mật khẩu cũ không chính xác',
+//         });
+//     }
+
+//     // Hash mật khẩu mới
+//     const hashedPassword = await bcrypt.hash(newPassword, 10);
+//     user.password = hashedPassword;
+//     user.passwordChangedAt = new Date(); // Cập nhật thời gian đổi mật khẩu
+//     await user.save();
+
+//     return res.status(200).json({
+//         success: true,
+//         message: 'Đổi mật khẩu thành công',
+//     });
 // });
 
+//API get info all user login (Admin)
 const getUsers = asyncHandler(async (req, res) => {
     const queries = { ...req.query };
 
@@ -478,11 +427,13 @@ const getUsers = asyncHandler(async (req, res) => {
     let queryCommand = User.find(formattedQueries);
 
     if (req.query.q) {
+        delete formattedQueries.q;
         formattedQueries['$or'] = [
             { firstname: { $regex: req.query.q.trim(), $options: 'i' } },
             { lastname: { $regex: req.query.q.trim(), $options: 'i' } },
             { email: { $regex: req.query.q.trim(), $options: 'i' } },
         ];
+        queryCommand = User.find(formattedQueries);
     }
 
     // Sorting
@@ -580,47 +531,9 @@ const updateUserAddress = asyncHandler(async (req, res) => {
     });
 });
 
-// const updateCart = asyncHandler(async (req, res) => {
-//     const { _id } = req.user;
-//     const { pid, quantity = 1, color, price, thumb, title } = req.body;
-//     if (!pid || !color) {
-//         throw new Error('Missing inputs');
-//     }
-//     const user = await User.findById(_id).select('cart');
-//     //check xem sp đã có trong giỏ hàng chưa
-//     const alreadyProduct = user?.cart?.find((element) => element.product.toString() === pid && element.color === color);
-
-//     if (alreadyProduct) {
-//         const response = await User.updateOne(
-//             { cart: { $elemMatch: alreadyProduct } },
-//             {
-//                 $set: {
-//                     'cart.$.quantity': quantity,
-//                     'cart.$.price': price,
-//                     'cart.$.thumb': thumb,
-//                     'cart.$.title': title,
-//                 },
-//             },
-//             { new: true },
-//         );
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             message: response ? 'Product has been added to cart' : 'Something went wrong',
-//         });
-//     } else {
-//         const response = await User.findByIdAndUpdate(
-//             _id,
-//             { $push: { cart: { product: pid, quantity, color, price, thumb, title } } },
-//             { new: true },
-//         );
-//         return res.status(200).json({
-//             success: response ? true : false,
-//             message: response ? 'Product has been added to cart' : 'Something went wrong',
-//         });
-//     }
-// });
-
 const updateCart = asyncHandler(async (req, res) => {
+    console.log('Request body:', req.body); // In dữ liệu nhận được từ chatbot
+
     const { _id } = req.user;
     const { pid, quantity = 1, color, price, discountPrice, thumb, title } = req.body;
 
@@ -671,6 +584,59 @@ const updateCart = asyncHandler(async (req, res) => {
     }
 });
 
+// const updateCart = asyncHandler(async (req, res) => {
+//     console.log('Request body:', req.body); // Log dữ liệu từ chatbot
+
+//     const { userId, pid, quantity = 1, color, price, discountPrice, thumb, title } = req.body;
+
+//     if (!userId || !pid || !color) {
+//         return res.status(400).json({ success: false, message: 'Missing inputs' });
+//     }
+
+//     const finalPrice = discountPrice && discountPrice > 0 ? discountPrice : price;
+
+//     const user = await User.findById(userId).select('cart');
+
+//     if (!user) {
+//         return res.status(404).json({ success: false, message: 'User not found' });
+//     }
+
+//     // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+//     const alreadyProduct = user.cart.find((element) => element.product.toString() === pid && element.color === color);
+
+//     if (alreadyProduct) {
+//         const response = await User.updateOne(
+//             { _id: userId, 'cart.product': pid, 'cart.color': color },
+//             {
+//                 $set: {
+//                     'cart.$.quantity': quantity,
+//                     'cart.$.price': finalPrice,
+//                     'cart.$.thumb': thumb,
+//                     'cart.$.title': title,
+//                 },
+//             },
+//         );
+
+//         return res.status(200).json({
+//             success: response.modifiedCount > 0,
+//             message: response.modifiedCount > 0 ? 'Product has been updated in cart' : 'Something went wrong',
+//         });
+//     } else {
+//         const response = await User.findByIdAndUpdate(
+//             userId,
+//             {
+//                 $push: { cart: { product: pid, quantity, color, price: finalPrice, thumb, title } },
+//             },
+//             { new: true },
+//         );
+
+//         return res.status(200).json({
+//             success: !!response,
+//             message: response ? 'Product has been added to cart' : 'Something went wrong',
+//         });
+//     }
+// });
+
 const removeProductInCart = asyncHandler(async (req, res) => {
     const { _id } = req.user;
     const { pid, color } = req.params;
@@ -720,6 +686,195 @@ const updateWishList = asyncHandler(async (req, res) => {
     }
 });
 
+const contactUs = asyncHandler(async (req, res) => {
+    const { firstname, lastname, email, message } = req.body;
+
+    if (!firstname || !lastname || !email || !message) {
+        throw new Error('Missing required information!');
+    }
+
+    const htmlContent = `
+        <h2>📩 New message from customer</h2>
+        <p><strong>Full name:</strong> ${lastname} ${firstname}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Content:</strong></p>
+        <p>${message}</p>
+    `;
+
+    const mailData = {
+        email: process.env.EMAIL_NAME,
+        subject: `Contact from Customer - ${lastname} ${firstname}`,
+        html: htmlContent,
+    };
+
+    try {
+        const response = await sendMail(mailData);
+
+        return res.status(200).json({
+            success: response.response?.includes('OK') ? true : false,
+            message: response.response?.includes('OK')
+                ? 'Message sent successfully!'
+                : 'An error occurred, please try again!',
+        });
+    } catch (error) {
+        console.error('Email sending error:', error);
+        return res.status(500).json({ success: false, message: 'System error! Unable to send email.' });
+    }
+});
+
+// const sendOrderSuccessEmail = asyncHandler(async (req, res) => {
+//     const { email, orderId, fullname, orderDate, products, totalPrice, address } = req.body;
+
+//     console.log('📩 Email request:', { email, orderId, fullname, orderDate, products, totalPrice, address });
+
+//     if (!email || !orderId || !fullname || !orderDate || !products || !totalPrice || !address) {
+//         return res.status(400).json({ success: false, message: 'Missing required fields' });
+//     }
+
+//     // Chuyển đổi ngày đặt hàng sang định dạng dễ đọc hơn
+//     const formattedDate = new Date(orderDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+//     // Tạo nội dung danh sách sản phẩm
+//     const productList = products
+//         .map(
+//             (item) => `
+//         <tr>
+//             <td style="border: 1px solid #ddd; padding: 10px;">
+//                 <img src="${item.thumb}" alt="${item.title}" style="width: 100px; border-radius: 5px;" />
+//             </td>
+//             <td style="border: 1px solid #ddd; padding: 10px;">${item.title}</td>
+//             <td style="border: 1px solid #ddd; padding: 10px;">${item.color}</td>
+//             <td style="border: 1px solid #ddd; padding: 10px;">${item.quantity}</td>
+//             <td style="border: 1px solid #ddd; padding: 10px;">${item.price.toLocaleString()} VNĐ</td>
+//         </tr>
+//     `,
+//         )
+//         .join('');
+
+//     // Nội dung HTML của email
+//     const htmlContent = `
+//         <div style="font-family: Arial, sans-serif; padding: 20px;">
+//             <h2 style="color: #28a745;">🎉 Đơn hàng của bạn đã được xác nhận!</h2>
+//             <p>Xin chào <strong>${fullname}</strong>,</p>
+//             <p>Chúng tôi rất vui thông báo rằng đơn hàng <strong>#${orderId}</strong> của bạn đã được xử lý thành công.</p>
+
+//             <h3>📅 Ngày đặt hàng: ${formattedDate}</h3>
+//             <h3>📍 Địa chỉ giao hàng: ${address}</h3>
+
+//             <h3>🛍️ Chi tiết đơn hàng:</h3>
+//             <table style="width: 100%; border-collapse: collapse; text-align: left;">
+//                 <tr style="background: #f8f8f8;">
+//                     <th style="border: 1px solid #ddd; padding: 10px;">Hình ảnh</th>
+//                     <th style="border: 1px solid #ddd; padding: 10px;">Sản phẩm</th>
+//                     <th style="border: 1px solid #ddd; padding: 10px;">Màu sắc</th>
+//                     <th style="border: 1px solid #ddd; padding: 10px;">Số lượng</th>
+//                     <th style="border: 1px solid #ddd; padding: 10px;">Giá</th>
+//                 </tr>
+//                 ${productList}
+//             </table>
+
+//             <h3>💰 Tổng tiền: <span style="color: #d9534f;">${totalPrice.toLocaleString()} VNĐ</span></h3>
+
+//             <p>Cảm ơn bạn đã mua sắm tại cửa hàng của chúng tôi!</p>
+//             <p>Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ bộ phận hỗ trợ.</p>
+
+//             <p style="margin-top: 20px; font-size: 14px; color: #888;">
+//                 <em>Đây là email tự động, vui lòng không trả lời email này.</em>
+//             </p>
+//         </div>
+//     `;
+
+//     try {
+//         const response = await sendMail({
+//             email: email,
+//             subject: '🎉 Xác nhận đơn hàng thành công',
+//             html: htmlContent,
+//         });
+
+//         console.log('✅ Email sent:', response.response);
+//         return res.status(200).json({ success: true, message: 'Email sent successfully!' });
+//     } catch (error) {
+//         console.error('❌ Email sending error:', error.message, error.stack);
+//         return res.status(500).json({ success: false, message: 'Failed to send email', error: error.message });
+//     }
+// });
+
+const sendOrderSuccessEmail = asyncHandler(async (req, res) => {
+    const { email, orderId, fullname, orderDate, products, totalPrice, address } = req.body;
+
+    console.log('📩 Email request:', { email, orderId, fullname, orderDate, products, totalPrice, address });
+
+    if (!email || !orderId || !fullname || !orderDate || !products || !totalPrice || !address) {
+        return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    // Format order date to a more readable format
+    const formattedDate = new Date(orderDate).toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+    // Generate product list HTML
+    const productList = products
+        .map(
+            (item) => `
+        <tr>
+            <td style="border: 1px solid #ddd; padding: 10px;">
+                <img src="${item.thumb}" alt="${item.title}" style="width: 100px; border-radius: 5px;" />
+            </td>
+            <td style="border: 1px solid #ddd; padding: 10px;">${item.title}</td>
+            <td style="border: 1px solid #ddd; padding: 10px;">${item.color}</td>
+            <td style="border: 1px solid #ddd; padding: 10px;">${item.quantity}</td>
+            <td style="border: 1px solid #ddd; padding: 10px;">${item.price.toLocaleString()} VND</td>
+        </tr>
+    `,
+        )
+        .join('');
+
+    // Email content
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px;">
+            <h2 style="color: #28a745; text-align: center;">🎉 Order Confirmation</h2>
+            <p>Dear <strong>${fullname}</strong>,</p>
+            <p>We are pleased to inform you that your order <strong>#${orderId}</strong> has been successfully processed.</p>
+            
+            <h3>📅 Order Date: ${formattedDate}</h3>
+            <h3>📍 Shipping Address: ${address}</h3>
+            
+            <h3>🛍️ Order Details:</h3>
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <tr style="background: #f8f8f8;">
+                    <th style="border: 1px solid #ddd; padding: 10px;">Image</th>
+                    <th style="border: 1px solid #ddd; padding: 10px;">Product</th>
+                    <th style="border: 1px solid #ddd; padding: 10px;">Color</th>
+                    <th style="border: 1px solid #ddd; padding: 10px;">Quantity</th>
+                    <th style="border: 1px solid #ddd; padding: 10px;">Price</th>
+                </tr>
+                ${productList}
+            </table>
+
+            <h3>💰 Total: <span style="color: #d9534f;">${totalPrice.toLocaleString()} VND</span></h3>
+
+            <p>Thank you for shopping with us! If you have any questions, feel free to contact our support team.</p>
+            
+            <p style="margin-top: 20px; font-size: 14px; color: #888; text-align: center;">
+                <em>This is an automated email, please do not reply.</em>
+            </p>
+        </div>
+    `;
+
+    try {
+        const response = await sendMail({
+            email: email,
+            subject: '🎉 Order Confirmation',
+            html: htmlContent,
+        });
+
+        console.log('✅ Email sent:', response.response);
+        return res.status(200).json({ success: true, message: 'Email sent successfully!' });
+    } catch (error) {
+        console.error('❌ Email sending error:', error.message, error.stack);
+        return res.status(500).json({ success: false, message: 'Failed to send email', error: error.message });
+    }
+});
+
 module.exports = {
     register,
     finalRegister,
@@ -730,6 +885,7 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
+    changePassword,
     getUsers,
     deleteUser,
     updateUser,
@@ -739,4 +895,6 @@ module.exports = {
     createUser,
     removeProductInCart,
     updateWishList,
+    contactUs,
+    sendOrderSuccessEmail,
 };

@@ -78,6 +78,7 @@ var productSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        isBanned: { type: Boolean, default: false },
         variants: [
             {
                 color: String,

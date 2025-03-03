@@ -190,7 +190,6 @@ var userSchema = new mongoose.Schema(
     },
 );
 
-// Hash password trước khi lưu
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password') || !this.password) {
         return next();

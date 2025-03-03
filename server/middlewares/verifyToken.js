@@ -15,6 +15,8 @@ const verifyAccessToken = asyncHandler(async function (req, res, next) {
                 });
             }
             req.user = decode;
+            // console.log('Decoded Token:', decode); // Kiểm tra kết quả
+            decode.role = Number(decode.role); // Ép kiểu role thành số
             next();
         });
     } else {

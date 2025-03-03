@@ -10,6 +10,9 @@ router.put('/status/:oid', [verifyAccessToken, isAdmin], Controllers.updateStatu
 router.get('/admin', [verifyAccessToken, isAdmin], Controllers.getOrders);
 
 router.get('/', [verifyAccessToken], Controllers.getUserOrder);
+
+router.get('/bought-together/:pid', verifyAccessToken, Controllers.boughtTogether);
+
 router.get('/:oid', [verifyAccessToken], Controllers.getOrder);
 
 module.exports = router;

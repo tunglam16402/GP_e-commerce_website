@@ -37,61 +37,6 @@ const getCategory = asyncHandler(async (req, res) => {
     });
 });
 
-// const getAllCategories = asyncHandler(async (req, res) => {
-//     const queries = { ...req.query };
-
-//     // Tách các trường đặc biệt ra khỏi query
-//     const excludeFields = ['limit', 'sort', 'page', 'fields'];
-//     excludeFields.forEach((element) => delete queries[element]);
-
-//     // Format lại operators cho đúng cú pháp mongoose
-//     let queryString = JSON.stringify(queries);
-//     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => {
-//         return `$${matchedElement}`;
-//     });
-//     const formattedQueries = JSON.parse(queryString);
-
-//     // Filtering
-//     if (queries?.name) {
-//         formattedQueries.name = { $regex: queries.name, $options: 'i' };
-//     }
-
-//     let queryCommand = ProductCategory.find(formattedQueries);
-
-//     // Search admin ProductCategory
-//     if (req.query.q) {
-//         delete formattedQueries.q;
-//         formattedQueries['$or'] = [{ title: { $regex: req.query.q, $options: 'i' } }];
-//         queryCommand = ProductCategory.find(formattedQueries);
-//     }
-
-//     // Sorting
-//     if (req.query.sort) {
-//         const sortBy = req.query.sort.split(',').join(' ');
-//         queryCommand = queryCommand.sort(sortBy);
-//     }
-
-//     // Fields limited
-//     if (req.query.fields) {
-//         const fields = req.query.fields.split(',').join(' ');
-//         queryCommand = queryCommand.select(fields);
-//     }
-
-//     // Pagination
-//     const page = +req.query.page || 1;
-//     const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
-//     const skip = (page - 1) * limit;
-//     queryCommand.skip(skip).limit(limit);
-
-//     // Execute the query with error handling
-//     const response = await queryCommand.exec();
-//     const counts = await ProductCategory.find(formattedQueries).countDocuments();
-//     res.status(200).json({
-//         success: response ? true : false,
-//         counts,
-//         ProductCategories: response || 'Cannot get ProductCategory',
-//     });
-// });
 
 const updateCategory = asyncHandler(async (req, res) => {
     const { pcid } = req.params;

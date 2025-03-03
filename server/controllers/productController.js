@@ -2,29 +2,7 @@ const Product = require('../models/productModel');
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
 const makeSKU = require('uniqid');
-
-//API create product
-// const createProduct = asyncHandler(async (req, res) => {
-//     const { title, price, description, brand, category, color } = req.body;
-//     const thumb = req?.files?.thumb[0]?.path;
-//     const images = req?.files?.images?.map((element) => element.path);
-//     if (!(title && price && description && brand && category && color)) {
-//         throw new Error('Missing Inputs');
-//     }
-//     // chuyển chuỗi slug thành chuỗi -slug
-//     req.body.slug = slugify(title);
-//     if (thumb) {
-//         req.body.thumb = thumb;
-//     }
-//     if (images) {
-//         req.body.images = images;
-//     }
-//     const newProduct = await Product.create(req.body);
-//     return res.status(200).json({
-//         success: newProduct ? true : false,
-//         message: newProduct ? 'Product has been created' : 'Can not create product',
-//     });
-// });
+const jwt = require('jsonwebtoken');
 
 const createProduct = asyncHandler(async (req, res) => {
     const { title, price, description, detailDescription, brand, category, color, discount } = req.body;
@@ -91,86 +69,6 @@ const getProduct = asyncHandler(async (req, res) => {
     });
 });
 
-// const getAllProduct = asyncHandler(async (req, res) => {
-//     const queries = { ...req.query };
-
-//     // Tách các trường đặc biệt ra khỏi query
-//     const excludeFields = ['limit', 'sort', 'page', 'fields'];
-//     excludeFields.forEach((element) => delete queries[element]);
-
-//     // Format lại operators cho đúng cú pháp mongoose
-//     let queryString = JSON.stringify(queries);
-//     queryString = queryString.replace(/\b(gte|gt|lt|lte)\b/g, (matchedElement) => `$${matchedElement}`);
-//     const formattedQueries = JSON.parse(queryString);
-
-//     let colorQueryObject = {};
-
-//     // Filtering theo các tham số khác nhau
-//     if (queries?.title) {
-//         formattedQueries.title = { $regex: queries.title, $options: 'i' };
-//     }
-//     if (queries?.category) {
-//         formattedQueries.category = { $regex: queries.category, $options: 'i' };
-//     }
-//     if (queries?.brand) {
-//         formattedQueries.brand = { $regex: queries.brand, $options: 'i' };
-//     }
-//     if (queries?.color) {
-//         delete formattedQueries.color;
-//         const colorArray = queries.color?.split(',');
-//         const colorQuery = colorArray.map((element) => ({ color: { $regex: element, $options: 'i' } }));
-//         colorQueryObject = { $or: colorQuery };
-//     }
-
-//     let queryObject = {};
-//     if (queries?.q) {
-//         delete formattedQueries.q;
-
-//         // Tìm kiếm chung trên các trường title, category, brand, và color
-//         queryObject = {
-//             $or: [
-//                 { title: { $regex: queries.q, $options: 'i' } },
-//                 { category: { $regex: queries.q, $options: 'i' } },
-//                 { brand: { $regex: queries.q, $options: 'i' } },
-//                 { color: { $regex: queries.q, $options: 'i' } },
-//             ],
-//         };
-//     }
-
-//     // Kết hợp tất cả các filter lại
-//     const qr = { ...colorQueryObject, ...formattedQueries, ...queryObject };
-
-//     let queryCommand = Product.find(qr);
-
-//     // Sorting (nếu có)
-//     if (req.query.sort) {
-//         const sortBy = req.query.sort.split(',').join(' ');
-//         queryCommand = queryCommand.sort(sortBy);
-//     }
-
-//     // Fields limited (nếu có)
-//     if (req.query.fields) {
-//         const fields = req.query.fields.split(',').join(' ');
-//         queryCommand = queryCommand.select(fields);
-//     }
-
-//     // Pagination
-//     const page = +req.query.page || 1;
-//     const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
-//     const skip = (page - 1) * limit;
-//     queryCommand = queryCommand.skip(skip).limit(limit);
-
-//     // Execute query và lấy kết quả
-//     const response = await queryCommand.exec();
-//     const counts = await Product.countDocuments(qr);
-
-//     res.status(200).json({
-//         success: response ? true : false,
-//         counts,
-//         products: response.length ? response : 'Cannot get products',
-//     });
-// });
-
 const getAllProduct = asyncHandler(async (req, res) => {
     const queries = { ...req.query };
 
@@ -216,6 +114,52 @@ const getAllProduct = asyncHandler(async (req, res) => {
     }
 
     const qr = { ...colorQueryObject, ...formattedQueries, ...queryObject };
+
+    // const qr = { ...colorQueryObject, ...formattedQueries, ...queryObject, isBanned: false };
+
+    // const userRole = req.user ? +req.user.role : 2006; // Nếu không đăng nhập, mặc định là User (2006)
+
+    // console.log(req.user)
+
+    // if (userRole === 2006) {
+    //     qr.isBanned = false; // User chỉ thấy sản phẩm chưa bị ban
+    // } else if (userRole === 2002) {
+    //     if ('isBanned' in queries) {
+    //         qr.isBanned = queries.isBanned === 'true';
+    //     } else {
+    //         delete qr.isBanned; // ⚠️ Tránh lỗi bằng cách loại bỏ hoàn toàn
+    //     }
+    // } else {
+    //     return res.status(403).json({
+    //         success: false,
+    //         message: 'FORBIDDEN: INVALID ROLE',
+    //     });
+    // }
+
+    // console.log('Final Query:', JSON.stringify(qr, null, 2));
+
+    // **Giải mã token nếu có**
+    let userRole = 2006; // Mặc định là user
+    const token = req.headers.authorization?.split(' ')[1]; // Lấy token từ headers
+
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            userRole = decoded.role;
+        } catch (error) {
+            console.log('invalid Token:', error.message);
+        }
+    }
+
+    if (userRole === 2006) {
+        qr.isBanned = false;
+    } else if (userRole === 2002) {
+        if ('isBanned' in queries) {
+            qr.isBanned = queries.isBanned === 'true';
+        }
+    }
+
+    // console.log('Final Query:', JSON.stringify(qr, null, 2));
 
     let queryCommand = Product.find(qr);
 
@@ -374,6 +318,25 @@ const uploadImageProduct = asyncHandler(async (req, res) => {
     return res.status(200).json({
         success: response ? true : false,
         updatedProduct: response ? response : 'Cannot upload image for product',
+    });
+});
+
+const updateProductQuantity = asyncHandler(async (req, res) => {
+    const { pid } = req.params;
+    const { quantity } = req.body;
+
+    if (!quantity || isNaN(quantity) || quantity < 0) {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid quantity value',
+        });
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(pid, { quantity }, { new: true });
+
+    return res.status(200).json({
+        success: updatedProduct ? true : false,
+        message: updatedProduct ? 'Quantity updated' : 'Cannot update product quantity',
     });
 });
 
@@ -656,6 +619,27 @@ const deleteVariant = asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, message: 'Variant has been deleted' });
 });
 
+const banProduct = asyncHandler(async (req, res) => {
+    const { pid } = req.params;
+
+    if (!pid) {
+        return res.status(400).json({ success: false, message: 'Product ID is required' });
+    }
+
+    const product = await Product.findById(pid);
+    if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    product.isBanned = !product.isBanned; // Đảo trạng thái ban
+    await product.save();
+
+    res.status(200).json({
+        success: true,
+        message: product.isBanned ? 'Product has been banned.' : 'Product has been unbanned.',
+    });
+});
+
 module.exports = {
     createProduct,
     getProduct,
@@ -667,4 +651,6 @@ module.exports = {
     addVariant,
     updateVariant,
     deleteVariant,
+    banProduct,
+    updateProductQuantity,
 };
