@@ -1,8 +1,7 @@
 // import React, { useEffect, useState } from 'react';
 // import Masonry from 'react-masonry-css';
 // import { Product } from 'components';
-// import { useParams } from 'react-router-dom';
-// import { apiGetSameOrderProduct } from 'apis';
+// import { apiGetSameOrderProduct, apiGetProducts } from 'apis';
 // import withBaseComponent from 'hocs/withBaseComponent';
 
 // const breakpointColumnsObj = {
@@ -12,47 +11,67 @@
 //     500: 1,
 // };
 
-// const BoughtTogetherPage = () => {
-//     const { pid } = useParams();
-//     console.log('📌 Current URL:', window.location.pathname);
-//     console.log('🔹 useParams() trả về:', useParams());
-//     console.log('🔹 PID từ useParams:', pid);
-
+// const BoughtTogetherHome = () => {
 //     const [products, setProducts] = useState([]);
+//     const [pid, setPid] = useState(null);
 
 //     useEffect(() => {
-//         const fetchBoughtTogether = async () => {
-//             if (!pid) {
-//                 console.error('PID từ useParams() bị undefined!');
-//                 return;
-//             }
-
-//             console.log('🔹 Gọi API với PID:', pid);
-
+//         const fetchBestSellers = async () => {
 //             try {
-//                 const response = await apiGetSameOrderProduct(pid);
-//                 console.log('🔹 Kết quả API:', response);
-
-//                 if (response?.success) {
-//                     console.log('🔹 Danh sách sản phẩm nhận được:', response.recommendedProducts);
-//                     setProducts(response.recommendedProducts);
-//                 } else {
-//                     console.error('⚠️ API trả về nhưng không có recommendedProducts:', response);
+//                 const response = await apiGetProducts({ sort: '-sold', limit: 10 });
+//                 if (response?.success && response.products.length > 0) {
+//                     const bestSellerPids = response.products.map((p) => p._id);
+//                     console.log('Top 10 best-selling products:', bestSellerPids);
+//                     setPid(bestSellerPids);
 //                 }
 //             } catch (error) {
-//                 console.error('❌ Lỗi khi gọi API:', error);
+//                 console.error('❌ Error fetching best-selling products:', error);
+//             }
+//         };
+
+//         fetchBestSellers();
+//     }, []);
+
+//     useEffect(() => {
+//         if (!pid || pid.length === 0) return;
+
+//         const fetchBoughtTogether = async () => {
+//             try {
+//                 if (!pid || pid.length === 0) return;
+
+//                 let productFrequency = {};
+
+//                 for (const productId of pid) {
+//                     const response = await apiGetSameOrderProduct(productId, { limit: 10 });
+//                     if (response?.success) {
+//                         console.log(`Sản phẩm đang phân tích: ${productId}`);
+//                         console.log('Sản phẩm được gợi ý mua kèm:', response.recommendedProducts);
+//                         response.recommendedProducts.forEach((product) => {
+//                             const pId = product._id;
+//                             productFrequency[pId] = productFrequency[pId] || { count: 0, product };
+//                             productFrequency[pId].count += 1;
+//                         });
+//                     }
+//                 }
+
+//                 // Sort by the number of occurrences (prioritizing frequently bought-together items)
+//                 const sortedProducts = Object.values(productFrequency)
+//                     .sort((a, b) => b.count - a.count) // Sort in descending order
+//                     .map((entry) => entry.product); // Extract the list of products
+//                 console.log(' Sản phẩm được chọn để hiển thị:', sortedProducts);
+//                 setProducts(sortedProducts);
+//             } catch (error) {
+//                 console.error('❌ Error fetching Bought Together data:', error);
 //             }
 //         };
 
 //         fetchBoughtTogether();
 //     }, [pid]);
 
-//     console.log(products);
-
 //     return (
 //         <div className="w-full">
 //             <h3 className="text-3xl font-semibold text-gray-900 pb-6 pt-2 border-b-4 border-main uppercase tracking-widest">
-//                 Sản phẩm thường được mua cùng nhau
+//                 Frequently Bought Together
 //             </h3>
 //             <div className="mt-4 w-full m-auto">
 //                 <Masonry
@@ -72,7 +91,7 @@
 //                             />
 //                         ))
 //                     ) : (
-//                         <p className="text-center text-gray-500">Không có gợi ý nào.</p>
+//                         <p className="text-center text-gray-500">No recommendations available.</p>
 //                     )}
 //                 </Masonry>
 //             </div>
@@ -80,9 +99,10 @@
 //     );
 // };
 
-// export default withBaseComponent(BoughtTogetherPage);
+// export default withBaseComponent(BoughtTogetherHome);
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import Masonry from 'react-masonry-css';
 import { Product } from 'components';
 import { apiGetSameOrderProduct, apiGetProducts } from 'apis';
@@ -96,61 +116,48 @@ const breakpointColumnsObj = {
 };
 
 const BoughtTogetherHome = () => {
-    const [products, setProducts] = useState([]);
-    const [pid, setPid] = useState(null);
+    // Fetch danh sách sản phẩm bán chạy nhất
+    const { data: bestSellingProducts, isLoading: isLoadingBestSellers } = useQuery({
+        queryKey: ['bestSellers'],
+        queryFn: async () => {
+            const response = await apiGetProducts({ sort: '-sold', limit: 10 });
+            return response?.success ? response.products : [];
+        },
+        staleTime: 5 * 60 * 1000, // Cache 5 phút
+    });
 
-    useEffect(() => {
-        const fetchBestSellers = async () => {
-            try {
-                const response = await apiGetProducts({ sort: '-sold', limit: 10 });
-                if (response?.success && response.products.length > 0) {
-                    const bestSellerPids = response.products.map((p) => p._id);
-                    console.log('Top 10 best-selling products:', bestSellerPids);
-                    setPid(bestSellerPids);
+    // Fetch sản phẩm được mua kèm dựa trên danh sách bán chạy
+    const boughtTogetherQueries = useQueries({
+        queries: (bestSellingProducts || []).map((product) => ({
+            queryKey: ['boughtTogether', product._id],
+            queryFn: async () => {
+                const response = await apiGetSameOrderProduct(product._id, { limit: 10 });
+                return response?.success ? response.recommendedProducts : [];
+            },
+            enabled: !!bestSellingProducts, // Chỉ fetch khi có danh sách sản phẩm bán chạy
+            staleTime: 5 * 60 * 1000,
+        })),
+    });
+
+    // Tổng hợp dữ liệu từ nhiều API calls
+    const boughtTogetherProducts = React.useMemo(() => {
+        const productFrequency = {};
+
+        boughtTogetherQueries.forEach(({ data }) => {
+            if (!data) return;
+            data.forEach((product) => {
+                const pId = product._id;
+                if (!productFrequency[pId]) {
+                    productFrequency[pId] = { count: 0, product };
                 }
-            } catch (error) {
-                console.error('❌ Error fetching best-selling products:', error);
-            }
-        };
+                productFrequency[pId].count += 1;
+            });
+        });
 
-        fetchBestSellers();
-    }, []);
-
-    useEffect(() => {
-        if (!pid || pid.length === 0) return;
-
-        const fetchBoughtTogether = async () => {
-            try {
-                if (!pid || pid.length === 0) return;
-
-                let productFrequency = {};
-
-                for (const productId of pid) {
-                    const response = await apiGetSameOrderProduct(productId, { limit: 10 });
-                    if (response?.success) {
-                        console.log(`Sản phẩm đang phân tích: ${productId}`);
-                        console.log('Sản phẩm được gợi ý mua kèm:', response.recommendedProducts);
-                        response.recommendedProducts.forEach((product) => {
-                            const pId = product._id;
-                            productFrequency[pId] = productFrequency[pId] || { count: 0, product };
-                            productFrequency[pId].count += 1;
-                        });
-                    }
-                }
-
-                // Sort by the number of occurrences (prioritizing frequently bought-together items)
-                const sortedProducts = Object.values(productFrequency)
-                    .sort((a, b) => b.count - a.count) // Sort in descending order
-                    .map((entry) => entry.product); // Extract the list of products
-                console.log(' Sản phẩm được chọn để hiển thị:', sortedProducts);
-                setProducts(sortedProducts);
-            } catch (error) {
-                console.error('❌ Error fetching Bought Together data:', error);
-            }
-        };
-
-        fetchBoughtTogether();
-    }, [pid]);
+        return Object.values(productFrequency)
+            .sort((a, b) => b.count - a.count)
+            .map((entry) => entry.product);
+    }, [boughtTogetherQueries]);
 
     return (
         <div className="w-full">
@@ -163,8 +170,10 @@ const BoughtTogetherHome = () => {
                     className="my-masonry-grid flex mx-[-10px]"
                     columnClassName="my-masonry-grid_column mb-[-20px]"
                 >
-                    {products.length > 0 ? (
-                        products.map((product) => (
+                    {isLoadingBestSellers || boughtTogetherQueries.some((q) => q.isLoading) ? (
+                        <p className="text-center text-gray-500">Loading...</p>
+                    ) : boughtTogetherProducts.length > 0 ? (
+                        boughtTogetherProducts.map((product) => (
                             <Product
                                 key={product._id}
                                 pid={product._id}
